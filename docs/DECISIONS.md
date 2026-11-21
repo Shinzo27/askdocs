@@ -91,3 +91,23 @@ Short ADRs. Each records the option that was rejected, because that is the part 
 **Decision.** `documents.vintage` and `documents.applies_to_ay` are columns; the UI banner and the prompt header read them.
 
 **Why.** The Income-tax Act, 1961 applies to AY ≤ 2026-27 and the Act, 2025 applies after — a distinction that will keep changing. Encoding it in a prompt string would make every future amendment a code change; encoding it in the database makes it a data update with an audit trail.
+
+---
+
+## ADR-011 — Parsing is layout-aware and anchor-based, declared per document
+
+**Decision.** `data/manifest.json` declares, per document, `pdf_mode` (`layout` | `raw`) and `header_style` (`inline` | `above`). Unknown PDFs are auto-detected by counting distinct section numbers under each style. The `above` style is parsed in two passes: `(1)`-anchored headers first, then gap-fill bounded by neighbouring anchors.
+
+**Why.** The same statute printed by two publishers breaks a parser in opposite ways. `pdftotext -layout` on the gazette PDF of the 2025 Act scatters section numbers across two columns and collapses 536 sections to ~170; `-raw` on the 1961 copy loses the indentation its sub-clauses depend on. Neither mode is right globally, so it is a per-document fact.
+
+**Rejected.** One clever regex for both shapes. It looked fine on the 1961 Act and silently dropped 23 sections of the 2025 Act that print `9.(1)` with no space after the dot.
+
+**Cost, measured.** Three real bugs surfaced while building this, each of which silently lost content:
+
+- counting both header patterns in TOC detection dropped **28 chunks** of the CGST Rules (body pages misread as an arrangement);
+- a front-matter bound on TOC detection re-admitted the 1961 Act's trailing index (+76 chunks of junk);
+- schedules defaulting to the preceding section made every deduction table cite "Section 536 — Repeal and savings", fixed by emitting `SCHEDULE I`…`XVI` as their own sections.
+
+The four original documents now have an asserted chunk count (3,868 / 578 / 863 / 1,317), so any of these regressions fails a test instead of quietly shrinking the corpus.
+
+**Honest residual.** 27 of 536 sections in the 2025 Act match neither header signal; they stay attached to the preceding section, are reported as `sections_unparsed`, and are excluded from the golden set. Fixing them means font-level extraction (bold spans), which is a Week 2 problem at the earliest — a section count that is 95 % right and honestly reported beats a parser that lies.

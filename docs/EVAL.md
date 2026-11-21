@@ -39,9 +39,11 @@ Fields:
 | GST registration, thresholds, ITC | 8 | Cross-statute retrieval and correct document attribution |
 | Procedural / documentation (FAQ-derived) | 6 | Answer shape and completeness |
 | Refusal traps (outside the corpus) | 5 | Refusal correctness — state tax, tribunal rulings, hypotheticals |
-| Version traps (repealed or amended provisions) | 5 | `must_not_say` penalties; Act 1961 vs Act 2025 |
+| Version traps (repealed or amended provisions) | 5 | `must_not_say` penalties; Act 1961 vs Act 2025 — both are now in the corpus, so the answer has to pick the right one rather than the only one |
 
 Ten questions (`holdout`) are never used while tuning prompts or τ. They are scored every full run and reported separately, so an improvement that only exists on the tuned set is visible as a holdout regression.
+
+Questions may only target sections the parser actually anchored. The Income-tax Act, 2025 has 509 of 536 anchored (27 reported as `sections_unparsed` in `data/processed/stats.json`); a question whose section is not anchored is removed from the set rather than graded against text attached to the previous section. The golden set also pins `corpus_hash`, so adding a document invalidates the run instead of silently shifting the baseline.
 
 ## Metrics
 

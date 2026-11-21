@@ -19,6 +19,7 @@ India's Income-tax Act, 1961 was replaced by the **Income-tax Act, 2025**, in fo
 | Answers that sound right but cite nothing | Citation is parsed and validated against retrieved context before the answer is released |
 | Confident answers to out-of-corpus questions | Low-confidence retrieval triggers an explicit refusal, and refusal correctness is a scored metric |
 | Mixed-vintage law | Every chunk carries `doc_id` + `vintage`; the UI shows which Act and "as on" date the answer came from |
+| Two printings of the same statute | Extraction mode and header style are per-document facts in `data/manifest.json` — the gazette PDF needs `-raw` with title-above-number headers, the older consolidated copy needs `-layout` with inline headers |
 
 ---
 
@@ -26,7 +27,7 @@ India's Income-tax Act, 1961 was replaced by the **Income-tax Act, 2025**, in fo
 
 | Layer | State |
 |---|---|
-| **Corpus + ingestion** | ✅ Done — 4 official documents → 6,626 section-tagged chunks |
+| **Corpus + ingestion** | ✅ Done — 6 official documents → 11,080 section-tagged chunks, both Acts included |
 | **Retrieval (hybrid + rerank)** | 🚧 Week 1 |
 | **Grounded generation + streaming API** | 🚧 Week 2 |
 | **Chat UI, citation viewer, history** | 🚧 Week 2–3 |
@@ -37,17 +38,21 @@ Full four-week plan, with exit criteria per week: **[docs/PLAN.md](docs/PLAN.md)
 
 ### Corpus (measured, not estimated)
 
-| Document | Publisher | Vintage | Pages | Sections | Chunks |
-|---|---|---|---|---|---|
-| Income-tax Act, 1961 | Govt. of India | consolidated to **FA 2021** | 956 | 705 | 3,868 |
-| CGST Act, 2017 | CBIC | as on 01.08.2021 | — | 175 | 578 |
-| CGST Rules, 2017 | CBIC | as on 30.12.2017 | — | 169 | 863 |
-| CBDT taxpayer FAQs | Income Tax Dept | undated | — | — | 1,317 |
-| **Total** | | | | **1,049 unique** | **6,626** |
+| Document | Publisher | Vintage | Applies to | Pages | Sections | Chunks |
+|---|---|---|---|---|---|---|
+| **Income-tax Act, 2025** | Govt. of India — Act No. 30 of 2025 | as amended by **Finance Act, 2026** | Tax Year 2026-27 onwards | 687 | 509 of 536 + 16 schedules | 1,779 |
+| **Income-tax Rules, 2026** | CBDT, Notification 22/2026 | notified 20 Mar 2026 | Tax Year 2026-27 onwards | 977 | 333 of 333 | 2,675 |
+| Income-tax Act, 1961 | Govt. of India | consolidated to **FA 2021** | AY 2026-27 and earlier | 956 | 705 | 3,868 |
+| CGST Act, 2017 | CBIC | as on 01.08.2021 | GST — ongoing | — | 175 | 578 |
+| CGST Rules, 2017 | CBIC | as on 30.12.2017 | GST — ongoing | — | 169 | 863 |
+| CBDT taxpayer FAQs | Income Tax Dept | undated | eval only | — | — | 1,317 |
+| **Total** | | | | | **1,907 pairs** | **11,080** |
 
-**4.95 M characters**, median chunk 817 chars, hard cap 1,344. Source URLs, HTTP status and byte counts for every document are recorded in [`data/sources.json`](data/sources.json); the reasoning behind the chunker is in [`data/README.md`](data/README.md).
+**8.72 M characters**, median chunk 891 chars, hard cap 1,344. Source URLs, retrieval route, HTTP status, byte counts and SHA-256 prefixes for every document are in [`data/sources.json`](data/sources.json); the parsing decisions are in [`data/README.md`](data/README.md).
 
-The 1961 Act is still in the corpus on purpose: it governs every tax year that began before 1 April 2026, so returns, assessments and appeals for AY ≤ 2026-27 must still be answered from it. The Act 2025 and Rules 2026 PDFs land in Week 1 — `python scripts/ingest.py` picks them up with no code change.
+Both Acts are in the corpus on purpose. The 2025 Act governs income from 1 April 2026; the 1961 Act still governs every tax year that began before it — returns, assessments, appeals and TDS corrections continue under it (s. 536 savings). A useful assistant must retrieve from both and say which one applies, which is why `applies_to_ay` is per-document metadata rather than a prompt string.
+
+`incometaxindia.gov.in` returns **403 to this network**, so the two new documents came from Wayback snapshots of the same official URLs — recorded with snapshot timestamps, because a snapshot is not the live page.
 
 ---
 
@@ -103,7 +108,7 @@ python -m venv .venv
 
 # ingestion is stdlib-only: no pip install, no API key, no network
 python scripts/ingest.py
-# -> data/processed/chunks.jsonl  (6,626 chunks)
+# -> data/processed/chunks.jsonl  (11,080 chunks across 6 documents)
 # -> data/processed/stats.json
 ```
 
@@ -136,7 +141,7 @@ Thresholds, question distribution and the CI gate are specified in **[docs/EVAL.
 
 | Week | Theme | Ships |
 |---|---|---|
-| **1** | Ground truth first | Act 2025 + Rules 2026 ingested, pgvector schema, hybrid retrieval + rerank, retrieval eval |
+| **1** | Ground truth first | Corpus complete (11,080 chunks, both Acts) → pgvector schema, hybrid retrieval + rerank, retrieval eval |
 | **2** | Answer generation | Grounded prompting, citation validation, refusal path, SSE API, chat shell |
 | **3** | Product surface | Citation viewer with PDF page jump, conversation history, feedback loop, eval dashboard |
 | **4** | Harden and ship | CI/CD, deploy, load test, a11y pass, README with measured numbers, demo recording |

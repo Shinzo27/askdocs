@@ -35,14 +35,16 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 
 ## Week 1 · Ground truth first (23–29 Nov)
 
-- `[DATA]` User-supplied **Income-tax Act, 2025** and **Rules, 2026** PDFs into `data/raw/`; extend `DOCS` in `scripts/ingest.py` with per-document `vintage` and `applies_to_ay` fields; re-run ingestion as **corpus v2** and write the delta into `stats.json`.
-- `[DATA]` `scripts/embed.py` — batched bge-small encoding, idempotent by content hash, writes an embedding manifest (model name, dimension, chunk count, hash) so a model change is detected instead of silently mixing vectors.
-- `[DB]` Alembic schema: `documents`, `chunks` (`vector(384)` + generated `tsvector` + GIN), `conversations`, `messages`, `citations`, `query_log`; loader that streams `chunks.jsonl` into Postgres.
-- `[RAG]` Hybrid retrieval: dense top-50 ∥ full-text top-50 → **Reciprocal Rank Fusion** → cross-encoder rerank → section-level dedupe → top-6. `GET /api/v1/search?q=` returns scored passages with section, chapter, page and `?debug=1` score breakdown.
-- `[EVAL]` `eval/retrieval_eval.py` over a 25-question retrieval subset; report **recall@10, MRR, section hit rate** for dense-only vs BM25-only vs hybrid+rerank.
-- `[INFRA]` `docker compose up` (api, db, ollama), `Makefile` targets, pytest skeleton, pre-commit hooks.
+**Corpus status: complete.** Both Acts and both rule sets are ingested and measured (11,080 chunks, 1,907 document/section pairs) by pulling the blocked official PDFs through Wayback snapshots. What remains in this week is the machinery *on top of* the corpus.
 
-**Exit criteria:** `docker compose up` + one curl returns citations with section and page; hybrid+rerank beats dense-only on section hit rate; recall@10 ≥ 0.85; the comparison table is committed in `docs/eval/retrieval-w1.md`.
+- `[DATA]` Corpus v2 is in place; the remaining ingestion work is the **CBDT circular drop** (`data/raw/circulars/`) if you can fetch them, plus a `--verify` mode that re-checks SHA-256 prefixes and page counts against `data/sources.json`.
+- `[DATA]` `scripts/embed.py` — batched bge-small encoding, idempotent by content hash, writes an embedding manifest (model, dimension, chunk count, hash) so a model change is detected instead of silently mixing vectors.
+- `[DB]` Alembic schema: `documents`, `chunks` (`vector(384)` + generated `tsvector` + GIN), `conversations`, `messages`, `citations`, `query_log`; loader that streams `chunks.jsonl` into Postgres.
+- `[RAG]` Hybrid retrieval: dense top-50 ∥ full-text top-50 → **Reciprocal Rank Fusion** → cross-encoder rerank → section-level dedupe → top-6. `GET /api/v1/search?q=` returns scored passages with section, chapter, page, vintage and `?debug=1` score breakdown.
+- `[EVAL]` `eval/retrieval_eval.py` over a 25-question retrieval subset drawn from **both** Acts; report **recall@10, MRR, section hit rate** for dense-only vs BM25-only vs hybrid+rerank.
+- `[INFRA]` `docker compose up` (api, db, ollama), `Makefile` targets, pytest skeleton, pre-commit hooks, and a regression test that asserts the four original documents keep their exact chunk counts (3,868 / 578 / 863 / 1,317).
+
+**Exit criteria:** `docker compose up` + one curl returns citations with section, vintage and page; hybrid+rerank beats dense-only on section hit rate; recall@10 ≥ 0.85; the comparison table is committed in `docs/eval/retrieval-w1.md`.
 
 ---
 
@@ -146,7 +148,7 @@ askdocs/
 
 | Week | Line it earns on a résumé |
 |---|---|
-| 1 | Built a section-aware retrieval layer over 1,049 statute sections (6,626 chunks), combining pgvector cosine search with Postgres full-text via Reciprocal Rank Fusion and cross-encoder reranking — raising section hit rate over a dense-only baseline on a 25-question evaluation set. |
+| 1 | Built a layout-aware, section-anchored ingestion pipeline over six government documents (11,080 chunks, 1,907 document/section pairs) — recovering 509 of 536 sections from a two-column gazette PDF — and a retrieval layer combining pgvector cosine search with Postgres full-text via Reciprocal Rank Fusion plus cross-encoder reranking. |
 | 2 | Engineered grounded generation with server-side citation validation and a confidence-based refusal path, cutting unsupported claims by construction; streamed answers over SSE with per-request latency and cost telemetry. |
 | 3 | Shipped the product surface — citation viewer with PDF page deep links, persistent history, feedback capture, and an in-app evaluation dashboard — with rate limiting and history-aware query rewriting. |
 | 4 | Deployed a full-stack RAG service (Next.js + FastAPI + Neon pgvector) with CI regression gates on citation accuracy, load-tested to 20 concurrent streams, and documented measured accuracy, latency and cost per query. |
