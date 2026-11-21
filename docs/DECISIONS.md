@@ -1,0 +1,93 @@
+# Decisions
+
+Short ADRs. Each records the option that was rejected, because that is the part future readers cannot reconstruct.
+
+---
+
+## ADR-001 — Section-aware chunking instead of fixed windows
+
+**Decision.** Split statute PDFs on `N.` / `12A.` section headers and keep `section`, `section_title`, `chapter`, `page` on every chunk.
+
+**Why.** Fixed 1000-character windows returned the *table of contents* for the query "80C" — a heading list, not the deduction rules — and lost the ability to cite anything better than "somewhere in the PDF". Section splitting makes the citation the unit of retrieval, which makes evaluation possible at all.
+
+**Cost.** Two filters had to be written and tested: TOC-page detection, and tolerance for the `4[80C.` footnote prefix Indian statute PDFs use for amended provisions. Without the second, hundreds of amended sections silently vanish.
+
+---
+
+## ADR-002 — Postgres + pgvector instead of a dedicated vector database
+
+**Decision.** One Postgres instance holds vectors, full-text index and product data.
+
+**Why.** The workload is 6.6 k chunks — three orders of magnitude below where HNSW tuning becomes a problem. A second datastore would add a deployment, a backup policy and a consistency bug (chunk deleted from one store, alive in the other) in exchange for latency nobody would notice.
+
+**Rejected.** Qdrant/Weaviate/Pinecone: operationally heavier, and none of them solves the actual hard part (hybrid fusion + rerank).
+
+---
+
+## ADR-003 — Hybrid retrieval with Reciprocal Rank Fusion
+
+**Decision.** Dense top-50 ∥ lexical top-50, fused with RRF (`k = 60`), then reranked.
+
+**Why.** Each retriever has a failure the other covers: vector search misses exact statutory phrases ("notwithstanding anything contained in"), full-text misses paraphrase ("deduction for my kid's school fees"). RRF is rank-based, so it needs no calibration between cosine distance and `ts_rank_cd` — normalising those two into one score is a bug waiting to happen.
+
+**Cost.** Two queries and a rerank per request instead of one. Measured at ~140 ms total on the dev box; acceptable against a 1.5 s first-token budget.
+
+---
+
+## ADR-004 — Local embeddings, provider-agnostic generation
+
+**Decision.** `bge-small-en-v1.5` runs in-process; the generator sits behind one `Generator` protocol with Ollama as the default and OpenAI/Gemini adapters available.
+
+**Why.** Embeddings must be deterministic and free — the eval numbers are only comparable if the same text produces the same vector, and re-encoding the corpus on every key change would be a silent regression source. Generation is the part worth swapping, so it is the part behind an interface.
+
+**Rejected.** Hosted embeddings by default: costs money per re-index, and ties the reproducibility of the evaluation to a vendor key.
+
+---
+
+## ADR-005 — Refusal as a first-class outcome
+
+**Decision.** A low rerank score or a missing section anchor short-circuits to a refusal template before the LLM is called.
+
+**Why.** A wrong answer with a confident citation is the worst possible product behaviour in tax, and it scores identically to a good answer on every "did it respond" metric. Refusing early is also cheaper: no generation tokens, ~200 ms response.
+
+**Cost.** Refusal correctness had to be split into two metrics (out-of-corpus refusal, over-refusal) so that refusing everything cannot look like an improvement.
+
+---
+
+## ADR-006 — Citation validation server-side, not prompt-side
+
+**Decision.** `[n]` markers are resolved to retrieved chunks after generation; unknown or out-of-context markers fail the message.
+
+**Why.** A prompt instruction is a hope. Validation is a check. With `citation_valid` stored per message, the metric stops being a claim about the prompt and becomes a queryable fact.
+
+---
+
+## ADR-007 — SSE instead of WebSockets
+
+**Decision.** `text/event-stream` for token streaming.
+
+**Why.** One-directional server→client flow, works through every proxy, reconnects with `Last-Event-ID` semantics, and needs no connection registry on the server. WebSockets would buy bidirectionality the product does not use.
+
+---
+
+## ADR-008 — Anonymous sessions, no accounts in v1
+
+**Decision.** Signed httpOnly cookie stores a session id; conversations belong to that session.
+
+**Why.** Login adds a provider dependency, an email flow and a data-retention policy to a project whose difficulty is retrieval quality. The history feature (and the feedback loop) work without it. Accounts are a v2 line, listed in `docs/BACKLOG.md`.
+
+---
+
+## ADR-009 — Publish failures, not just headline accuracy
+
+**Decision.** The eval report ships with per-question failures and a mechanism classification; a ❌ row stays in the published table.
+
+**Why.** An accuracy number with no visible failures is unfalsifiable. The failure taxonomy is also the most useful engineering artefact in the repo: it tells the next reader where the pipeline actually breaks.
+
+---
+
+## ADR-010 — Corpus vintages are data, not code
+
+**Decision.** `documents.vintage` and `documents.applies_to_ay` are columns; the UI banner and the prompt header read them.
+
+**Why.** The Income-tax Act, 1961 applies to AY ≤ 2026-27 and the Act, 2025 applies after — a distinction that will keep changing. Encoding it in a prompt string would make every future amendment a code change; encoding it in the database makes it a data update with an audit trail.
