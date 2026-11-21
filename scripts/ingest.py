@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 """
-AskDocs ingestion: raw PDFs / CSV / HTML -> normalised JSONL chunks.
+AskDocs ingestion: raw PDFs / CSV -> normalised JSONL chunks.
 
 Design notes
 ------------
-- PDFs are converted with poppler's `pdftotext -layout`, which preserves
-  indentation a lot better than pure PyPDF extraction on Indian statute PDFs.
-- Page breaks (\f) are kept so every chunk can cite a page.
-- Statute PDFs mark sections as "12A. Title of section" at the start of a line.
-  We split on those, so a retrieved chunk maps to a citable section, not an
-  arbitrary 1000-character window.
+- Documents are described in `data/manifest.json`, not hardcoded here. Adding a
+  document is one manifest entry; an unmapped PDF is still ingested (inferred
+  metadata + a loud warning) so a drop never silently does nothing.
+- Two extraction modes, because Indian statute PDFs come in two shapes:
+    * `layout` (pdftotext -layout) keeps indentation, which the thc.nic.in copy
+      of the 1961 Act needs;
+    * `raw` keeps reading order, which the two-column gazette PDFs of the 2025
+      Act and the 2026 Rules need - with -layout their section numbers scatter
+      and 536 sections collapse into ~170.
+- Two header styles, because the header itself moved:
+    * `inline` -> "80C. Deduction in respect of life insurance premia..."
+    * `above`  -> title on one line, "1. (1) This Act may be called..." below
+  Style is declared per document; an unknown document is auto-detected by
+  counting distinct section numbers under each style and keeping the winner.
+- Page breaks (\\f) are kept so every chunk can cite a page.
 - Long sections (> MAX_CHARS) are split on paragraph boundaries with overlap,
   and every sub-chunk keeps the parent section number.
 - Nothing here needs network access: it reads data/raw/ and writes
@@ -19,6 +28,7 @@ Design notes
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import re
 import subprocess
@@ -29,15 +39,24 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "data" / "processed"
+MANIFEST = ROOT / "data" / "manifest.json"
 
 MAX_CHARS = 1200
 OVERLAP = 150
 MIN_CHUNK = 120  # drop page furniture / stray headers
 
-# "12A. Title" / "2. Definitions." at line start, up to 8 spaces of indent.
+# "12A. Title" / "2. Definitions." at line start, up to 10 spaces of indent.
 # Statute PDFs prefix amended sections with footnote markers, e.g. "4[80C. ...",
 # so an optional leading "N[" or "*" must be tolerated or whole sections vanish.
 SECTION_RE = re.compile(r"^\s{0,10}(?:\d{1,2}\[\s*|\*+\s*)?(\d{1,3}[A-Z]{0,2})\.\s+([A-Z\[(][^\n]{2,120})")
+# Header style "above": a title line, then "<num>. (1) body..." beneath it.
+# The 2025 Act prints "9.(1)" with no space after the dot, so whitespace cannot
+# be required - only that the number is followed by space, end of line or "(".
+NUM_HEAD_RE = re.compile(r"^\s{0,6}(\d{1,3}[A-Z]{0,2})\.(?=\s|$|\()")
+# Part markers in the 2025 Act: "B.--Salaries"
+PART_RE = re.compile(r"^([A-Z])\.--([A-Z][^|]{2,60})$")
+# A plausible section title: capitalised, ends with a full stop, no table pipes.
+TITLE_LINE_RE = re.compile(r"^[A-Z][^|]{2,116}\.$")
 # Chapter / schedule markers are useful metadata even though they don't split
 CHAPTER_RE = re.compile(r"^\s*(CHAPTER\s+[IVXL]+|SCHEDULE\s+[IVXL]+[A-Z]?)\b")
 
@@ -48,6 +67,8 @@ class Chunk:
     doc_id: str
     doc_title: str
     doc_type: str          # act | rules | faq | form | commentary
+    vintage: str | None
+    applies_to_ay: str | None
     section: str | None
     section_title: str | None
     chapter: str | None
@@ -57,12 +78,20 @@ class Chunk:
     chars: int
 
 
-def pdf_to_pages(path: Path) -> list[str]:
-    """Return one string per PDF page."""
+# --------------------------------------------------------------------------- #
+# extraction
+# --------------------------------------------------------------------------- #
+
+def pdf_to_pages(path: Path, mode: str = "layout") -> list[str]:
+    """Return one string per PDF page, extracted with pdftotext (-layout/-raw)."""
+    args = ["pdftotext"]
+    if mode == "layout":
+        args.append("-layout")
+    elif mode == "raw":
+        args.append("-raw")
     try:
         out = subprocess.run(
-            ["pdftotext", "-layout", str(path), "-"],
-            capture_output=True, check=True,
+            [*args, str(path), "-"], capture_output=True, check=True
         ).stdout.decode("utf-8", errors="ignore")
     except FileNotFoundError:
         sys.exit("pdftotext not found - install poppler-utils")
@@ -100,13 +129,31 @@ def pack(paragraphs: list[str]) -> list[str]:
     return [c.strip() for c in chunks if len(c.strip()) >= MIN_CHUNK]
 
 
-def is_toc_page(page: str) -> bool:
+def is_toc_page(page: str, page_no: int = 1, total_pages: int = 0, bounded: bool = False) -> bool:
     """Detect 'ARRANGEMENT OF SECTIONS' style table-of-contents pages.
 
-    TOC pages list one short section heading per line; body pages wrap long
-    prose. Counting section-regex hits alone over-matches body pages (which
+    TOC pages list one short section heading per line, number-first; body pages
+    wrap long prose. Counting hits alone over-matches body pages (which
     reference many sections inline), so require short lines too.
+
+    The number-first pattern is used for this check regardless of the body's
+    header style: arrangements are always printed as "12A. Title", while body
+    headers may put the title above the number. Counting both patterns at once
+    flags rule-PDF body pages as TOC and silently drops content (measured: -28
+    chunks on the CGST Rules).
     """
+    # An arrangement only ever sits at the front of a statute. Without this
+    # bound, schedule pages (long tables whose rows are "1. ...", "2. ...")
+    # get classified as TOC and the deduction tables vanish from the corpus.
+    if bounded:
+        # Gazette two-column documents: only an explicit arrangement/contents
+        # heading counts. The short-line heuristic alone flags definition and
+        # schedule tables as TOC and drops real body text (measured: -17 pages
+        # of section 2 definitions in the 2025 Act).
+        explicit = "ARRANGEMENT OF SECTIONS" in page or page.lstrip().startswith("CONTENTS")
+        if not explicit:
+            return False
+
     lines = [ln for ln in page.splitlines() if ln.strip()]
     if not lines:
         return False
@@ -117,18 +164,34 @@ def is_toc_page(page: str) -> bool:
     return hits >= 8 and long_lines <= len(lines) * 0.2
 
 
-def ingest_statute(path: Path, doc_id: str, title: str, doc_type: str) -> list[Chunk]:
-    pages = pdf_to_pages(path)
-    if not pages:
-        return []
+def looks_like_title(line: str) -> bool:
+    s = line.strip()
+    if not TITLE_LINE_RE.match(s):
+        return False
+    if s.startswith("(") or len(s) < 6:
+        return False
+    if sum(ch.isdigit() for ch in s) > 4:  # table rows / form fields
+        return False
+    return True
 
-    rows: list[tuple[str | None, str | None, str | None, int, str]] = []
+
+# --------------------------------------------------------------------------- #
+# statute parsing
+# --------------------------------------------------------------------------- #
+
+Row = tuple[str | None, str | None, str | None, int, str]
+
+
+def scan_rows(pages: list[str], header_style: str) -> list[Row]:
+    """Turn pages into (section, title, chapter, page, line) rows."""
+    rows: list[Row] = []
     cur_sec: str | None = None
     cur_title: str | None = None
     cur_chap: str | None = None
+    prev_line = ""
 
     for page_no, page in enumerate(pages, start=1):
-        if is_toc_page(page):
+        if is_toc_page(page, page_no, len(pages), bounded=False):
             continue
         for line in page.splitlines():
             stripped = line.strip()
@@ -138,14 +201,141 @@ def ingest_statute(path: Path, doc_id: str, title: str, doc_type: str) -> list[C
             if CHAPTER_RE.match(stripped):
                 cur_chap = stripped.split()[1] if len(stripped.split()) > 1 else stripped
                 rows.append((cur_sec, cur_title, cur_chap, page_no, stripped))
+                prev_line = stripped
                 continue
-            m = SECTION_RE.match(line)
-            # Guard against numbered lists inside a section (e.g. "(a) 12. ...")
-            if m and not stripped.startswith("(") and len(m.group(2).split()) >= 2:
-                cur_sec, cur_title = m.group(1), m.group(2).strip().rstrip(".")
-            rows.append((cur_sec, cur_title, cur_chap, page_no, stripped))
 
-    # group consecutive rows by section
+            if header_style == "inline":
+                m = SECTION_RE.match(line)
+                # Guard against numbered lists inside a section (e.g. "(a) 12. ...")
+                if m and not stripped.startswith("(") and len(m.group(2).split()) >= 2:
+                    cur_sec, cur_title = m.group(1), m.group(2).strip().rstrip(".")
+            else:  # "above": the title line arrives before the number line
+                m = NUM_HEAD_RE.match(line)
+                if m and not stripped.startswith("(") and looks_like_title(prev_line):
+                    cur_sec, cur_title = m.group(1), prev_line.strip().rstrip(".")
+
+            rows.append((cur_sec, cur_title, cur_chap, page_no, stripped))
+            prev_line = stripped
+    return rows
+
+
+def scan_rows_above(pages: list[str]) -> list[Row]:
+    """Parse documents whose section header sits ABOVE the number line.
+
+    Gazette shape (Income-tax Act, 2025 as amended):
+
+        Repeal and savings.
+        536.(1) The Income-tax Act, 1961 (43 of 1961) is hereby repealed.
+
+    Two passes, because no single signal covers every section:
+
+    1. **Anchors** - a number line whose first sub-section marker ``(1)`` is on
+       the same line or the next one. High precision, but blind to sections
+       that have no sub-sections (13, 16, 25 ...).
+    2. **Gap fill** - between two anchors, accept the line whose number equals
+       the missing section and whose preceding line looks like a title.
+       Bounded by the surrounding anchors, so a table row inside section 2
+       cannot claim a number that belongs to section 100.
+
+    Anything left over stays attached to the preceding section instead of being
+    guessed, and the parsed count is reported by the caller. Measured on the
+    2025 Act: 536 sections -> 513 anchored, 23 unparsed (reported, not hidden).
+    """
+    flat: list[tuple[int, str]] = []
+    for page_no, page in enumerate(pages, start=1):
+        if is_toc_page(page, page_no, len(pages), bounded=True):
+            continue
+        for line in page.splitlines():
+            s = line.strip()
+            if s:
+                flat.append((page_no, s))
+
+    def num(sec: str) -> int:
+        m = re.match(r"^(\d+)", sec)
+        return int(m.group(1)) if m else -1
+
+    def sort_key(sec: str) -> tuple[int, str]:
+        n = num(sec)
+        return (n, sec[len(str(n)):])
+
+    starts: dict[int, tuple[str, str | None]] = {}
+    last: tuple[int, str] | None = None
+    for i, (_page, s) in enumerate(flat):
+        m = NUM_HEAD_RE.match(s)
+        if not m:
+            continue
+        has_sub = "(1)" in s[:14] or (i + 1 < len(flat) and flat[i + 1][1].startswith("(1)"))
+        if not has_sub:
+            continue
+        k = sort_key(m.group(1))
+        if last is not None and k <= last:
+            continue
+        prev = flat[i - 1][1] if i else ""
+        starts[i] = (m.group(1), prev.rstrip(".") if looks_like_title(prev) else None)
+        last = k
+
+    top = max((num(sec) for sec, _ in starts.values()), default=0)
+    known = {num(sec) for sec, _ in starts.values()}
+    for want in range(1, top + 1):
+        if want in known:
+            continue
+        lo = max((i for i, (sec, _t) in starts.items() if num(sec) < want), default=-1)
+        hi = min((i for i, (sec, _t) in starts.items() if num(sec) > want), default=len(flat))
+        for i in range(lo + 1, hi):
+            m = NUM_HEAD_RE.match(flat[i][1])
+            if not m or num(m.group(1)) != want:
+                continue
+            prev = flat[i - 1][1] if i else ""
+            nxt = flat[i + 1][1] if i + 1 < len(flat) else ""
+            if looks_like_title(prev) or nxt.startswith("(1)"):
+                starts[i] = (m.group(1), prev.rstrip(".") if looks_like_title(prev) else None)
+                known.add(want)
+                break
+
+    rows: list[Row] = []
+    cur_sec: str | None = None
+    cur_title: str | None = None
+    cur_chap: str | None = None
+    for i, (page_no, line) in enumerate(flat):
+        if i in starts:
+            cur_sec, cur_title = starts[i]
+        chap = CHAPTER_RE.match(line)
+        part = PART_RE.match(line)
+        if chap and line.split()[0].upper() == "SCHEDULE":
+            # Schedules follow section 536; without this they all inherit
+            # "Section 536" and a schedule table cites the repeal clause.
+            label = line.split()[1] if len(line.split()) > 1 else ""
+            cur_sec = f"SCHEDULE {label}".strip()
+            cur_title = f"Schedule {label}".strip()
+            cur_chap = cur_sec
+        elif chap:
+            cur_chap = line.split()[1] if len(line.split()) > 1 else line
+        elif part:
+            cur_chap = f"{part.group(1)}.--{part.group(2).strip()}"
+        rows.append((cur_sec, cur_title, cur_chap, page_no, line))
+    return rows
+
+
+def count_sections(pages: list[str], header_style: str) -> int:
+    rows = scan_rows_above(pages) if header_style == "above" else scan_rows(pages, header_style)
+    return len({r[0] for r in rows if r[0]})
+
+
+def detect_header_style(pages: list[str]) -> str:
+    """Pick the style that recovers more distinct section numbers."""
+    inline = count_sections(pages, "inline")
+    above = count_sections(pages, "above")
+    style = "inline" if inline >= above else "above"
+    print(f"    auto-detected header style: {style} (inline={inline}, above={above})",
+          end=" ", flush=True)
+    return style
+
+
+def ingest_statute(path: Path, doc: dict, pdf_mode: str, header_style: str) -> list[Chunk]:
+    pages = pdf_to_pages(path, pdf_mode)
+    if not pages:
+        return []
+    rows = scan_rows_above(pages) if header_style == "above" else scan_rows(pages, header_style)
     groups: list[dict] = []
     for sec, sec_title, chap, page, line in rows:
         if groups and groups[-1]["section"] == sec:
@@ -161,8 +351,9 @@ def ingest_statute(path: Path, doc_id: str, title: str, doc_type: str) -> list[C
             continue
         for i, piece in enumerate(pack(split_paragraphs(body))):
             chunks.append(Chunk(
-                id=f"{doc_id}:{g['section'] or 'x'}:{i}",
-                doc_id=doc_id, doc_title=title, doc_type=doc_type,
+                id=f"{doc['doc_id']}:{g['section'] or 'x'}:{i}",
+                doc_id=doc["doc_id"], doc_title=doc["title"], doc_type=doc["doc_type"],
+                vintage=doc.get("vintage"), applies_to_ay=doc.get("applies_to_ay"),
                 section=g["section"], section_title=g["section_title"],
                 chapter=g["chapter"], page=g["page"], chunk_index=i,
                 text=piece, chars=len(piece),
@@ -170,7 +361,7 @@ def ingest_statute(path: Path, doc_id: str, title: str, doc_type: str) -> list[C
     return chunks
 
 
-def ingest_faqs(path: Path) -> list[Chunk]:
+def ingest_faqs(path: Path, doc: dict) -> list[Chunk]:
     """Q&A rows -> one chunk each. Eval/answer-shape source, not statute text."""
     chunks: list[Chunk] = []
     with path.open(encoding="utf-8", errors="ignore") as fh:
@@ -184,24 +375,82 @@ def ingest_faqs(path: Path) -> list[Chunk]:
             for i, piece in enumerate(pack(split_paragraphs(text))):
                 chunks.append(Chunk(
                     id=f"faq:{row.get('ids', len(chunks))}:{i}",
-                    doc_id="faq-cbdt", doc_title="CBDT taxpayer FAQs",
-                    doc_type="faq", section=None, section_title=None, chapter=None,
+                    doc_id=doc["doc_id"], doc_title=doc["title"], doc_type="faq",
+                    vintage=doc.get("vintage"), applies_to_ay=doc.get("applies_to_ay"),
+                    section=None, section_title=None, chapter=None,
                     page=0, chunk_index=i, text=piece, chars=len(piece),
                 ))
     return chunks
 
 
+# --------------------------------------------------------------------------- #
+# manifest
+# --------------------------------------------------------------------------- #
+
+def load_manifest() -> list[dict]:
+    if not MANIFEST.exists():
+        sys.exit(f"manifest missing: {MANIFEST}")
+    return json.loads(MANIFEST.read_text(encoding="utf-8"))["documents"]
+
+
+def infer_doc(path: Path) -> dict:
+    """Metadata for a PDF the manifest does not know (never a silent skip)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", path.stem.lower()).strip("-")
+    print(f"  ! {path.name} is not in data/manifest.json - ingesting with inferred metadata")
+    return {
+        "file": path.name, "doc_id": slug, "title": path.stem.replace("_", " ").title(),
+        "doc_type": "act", "vintage": None, "applies_to_ay": None,
+        "publisher": None, "source_url": None, "license": None, "inferred": True,
+    }
+
+
+def sha256_16(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for block in iter(lambda: fh.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()[:16]
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    manifest = {p.name: {"doc_id": d, "title": t, "type": k} for p, d, t, k in DOCS}
-    all_chunks: list[Chunk] = []
+    docs = load_manifest()
+    mapped = {d["file"] for d in docs}
 
-    for path, doc_id, title, doc_type in DOCS:
+    # anything dropped in data/raw that the manifest does not know about
+    for extra in sorted(RAW.glob("*.pdf")):
+        if extra.name not in mapped:
+            docs.append(infer_doc(extra))
+
+    all_chunks: list[Chunk] = []
+    report: dict[str, dict] = {}
+
+    for doc in docs:
+        path = RAW / doc["file"]
         if not path.exists():
-            print(f"- skip {path.name} (missing)")
+            print(f"- skip {doc['file']} (missing - see data/README.md)")
             continue
-        print(f"+ {path.name} ...", end=" ", flush=True)
-        produced = ingest_faqs(path) if path.suffix == ".csv" else ingest_statute(path, doc_id, title, doc_type)
+        print(f"+ {doc['file']} ...", end=" ", flush=True)
+
+        if path.suffix.lower() == ".csv":
+            produced = ingest_faqs(path, doc)
+            report[doc["doc_id"]] = {"chunks": len(produced)}
+        else:
+            pdf_mode = doc.get("pdf_mode", "layout")
+            header_style = doc.get("header_style", "auto")
+            if header_style == "auto":
+                pages = pdf_to_pages(path, pdf_mode)
+                header_style = detect_header_style(pages) if pages else "inline"
+            produced = ingest_statute(path, doc, pdf_mode, header_style)
+            parsed = {c.section for c in produced if c.section}
+            declared = doc.get("declared_sections")
+            report[doc["doc_id"]] = {
+                "chunks": len(produced), "pdf_mode": pdf_mode,
+                "header_style": header_style,
+                "sections": len(parsed),
+                # only set when the manifest declares the document's own count
+                "sections_unparsed": (declared - len(parsed)) if declared else None,
+            }
         print(f"{len(produced)} chunks")
         all_chunks.extend(produced)
 
@@ -212,26 +461,29 @@ def main() -> None:
     by_doc: dict[str, int] = {}
     for c in all_chunks:
         by_doc[c.doc_id] = by_doc.get(c.doc_id, 0) + 1
-    sections = {c.doc_id for c in all_chunks if c.section}
+
     stats = {
-        "documents": manifest,
+        "documents": {
+            d["doc_id"]: {
+                "file": d["file"], "title": d["title"], "type": d["doc_type"],
+                "vintage": d.get("vintage"), "applies_to_ay": d.get("applies_to_ay"),
+                "sha256_16": sha256_16(RAW / d["file"]) if (RAW / d["file"]).exists() else None,
+                **report.get(d["doc_id"], {}),
+            }
+            for d in docs if report.get(d["doc_id"])
+        },
         "chunks": len(all_chunks),
         "chunks_by_doc": by_doc,
-        "docs_with_sections": sorted(sections),
+        "documents_with_sections": sorted({c.doc_id for c in all_chunks if c.section}),
+        "distinct_sections": len({(c.doc_id, c.section) for c in all_chunks if c.section}),
         "total_chars": sum(c.chars for c in all_chunks),
         "avg_chars": round(sum(c.chars for c in all_chunks) / max(len(all_chunks), 1)),
         "max_chars": max((c.chars for c in all_chunks), default=0),
     }
     (OUT / "stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
-    print(json.dumps(stats, indent=2))
+    print(json.dumps({k: stats[k] for k in
+                      ("chunks", "chunks_by_doc", "distinct_sections", "total_chars")}, indent=2))
 
-
-DOCS = [
-    (RAW / "it_act_thc.pdf", "it-act-1961", "Income-tax Act, 1961", "act"),
-    (RAW / "cgst_act.pdf", "cgst-act-2017", "Central Goods and Services Tax Act, 2017", "act"),
-    (RAW / "cgst_rules.pdf", "cgst-rules-2017", "Central Goods and Services Tax Rules, 2017", "rules"),
-    (RAW / "tax_faqs.csv", "faq-cbdt", "CBDT taxpayer FAQs", "faq"),
-]
 
 if __name__ == "__main__":
     main()

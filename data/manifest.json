@@ -1,0 +1,91 @@
+{
+  "_comment": "Every document the ingestion reads. `pdf_mode` and `header_style` describe the PDF's layout, not a preference: the gazette two-column PDFs need raw extraction and title-above-number headers, the older consolidated copies need -layout and inline headers. `header_style: auto` lets the ingester count distinct sections under both styles and keep the winner. Files live in data/raw/ (gitignored).",
+  "documents": [
+    {
+      "file": "it_act_2025.pdf",
+      "doc_id": "it-act-2025",
+      "title": "Income-tax Act, 2025",
+      "doc_type": "act",
+      "publisher": "Ministry of Finance / Legislative Department, Govt. of India",
+      "vintage": "Act No. 30 of 2025, as amended by Finance Act, 2026",
+      "applies_to_ay": "Tax Year 2026-27 onwards",
+      "source_url": "https://www.incometaxindia.gov.in/documents/d/guest/income_tax_act_2025_as_amended_by_fa_act_2026-pdf",
+      "retrieved_via": "Wayback Machine snapshot 20261114181853 (live host returns 403 to this network)",
+      "license": "Government work - reproduce with attribution",
+      "pdf_mode": "raw",
+      "header_style": "above",
+      "declared_sections": 536,
+      "notes": "536 sections, 23 chapters, 16 schedules. Repealed the 1961 Act from 01.04.2026; section 536 carries the savings."
+    },
+    {
+      "file": "it_rules_2026.pdf",
+      "doc_id": "it-rules-2026",
+      "title": "Income-tax Rules, 2026",
+      "doc_type": "rules",
+      "publisher": "Central Board of Direct Taxes (Notification No. 22/2026, G.S.R. 198(E))",
+      "vintage": "notified 20 March 2026, in force 1 April 2026",
+      "applies_to_ay": "Tax Year 2026-27 onwards",
+      "source_url": "https://www.incometaxindia.gov.in/documents/d/guest/en-notified-it-rules-2026-20-03-2026-pdf",
+      "retrieved_via": "Wayback Machine snapshot 20260412141007, completed with a range resume after a truncated first transfer",
+      "license": "Government work - reproduce with attribution",
+      "pdf_mode": "raw",
+      "header_style": "inline",
+      "declared_sections": 333,
+      "notes": "333 rules, 190 forms. Replaces the Income-tax Rules, 1962. Rules are printed as '158. Application for allotment ...' - one long line, inline header."
+    },
+    {
+      "file": "it_act_thc.pdf",
+      "doc_id": "it-act-1961",
+      "title": "Income-tax Act, 1961",
+      "doc_type": "act",
+      "publisher": "Govt. of India (consolidated text, thc.nic.in)",
+      "vintage": "consolidated up to Finance Act, 2021",
+      "applies_to_ay": "AY 2026-27 and earlier (see savings, s.536 of the 2025 Act)",
+      "source_url": "https://thc.nic.in/Central%20Governmental%20Acts/Income%20Tax%20Act%201961_.pdf",
+      "license": "Government work - reproduce with attribution",
+      "pdf_mode": "layout",
+      "header_style": "inline",
+      "notes": "Still governs every tax year beginning before 01.04.2026 - returns, assessments, appeals."
+    },
+    {
+      "file": "cgst_act.pdf",
+      "doc_id": "cgst-act-2017",
+      "title": "Central Goods and Services Tax Act, 2017",
+      "doc_type": "act",
+      "publisher": "CBIC, Ministry of Finance",
+      "vintage": "as on 01.08.2021",
+      "applies_to_ay": "GST - ongoing",
+      "source_url": "https://cbic-gst.gov.in/pdf/CGST-Act-Updated-01082021.pdf",
+      "license": "Government work - reproduce with attribution",
+      "pdf_mode": "layout",
+      "header_style": "inline"
+    },
+    {
+      "file": "cgst_rules.pdf",
+      "doc_id": "cgst-rules-2017",
+      "title": "Central Goods and Services Tax Rules, 2017",
+      "doc_type": "rules",
+      "publisher": "CBIC, Ministry of Finance",
+      "vintage": "as on 30.12.2017 (base rules)",
+      "applies_to_ay": "GST - ongoing",
+      "source_url": "https://cbic-gst.gov.in/pdf/cgst-rules-30122017.pdf",
+      "license": "Government work - reproduce with attribution",
+      "pdf_mode": "layout",
+      "header_style": "inline"
+    },
+    {
+      "file": "tax_faqs.csv",
+      "doc_id": "faq-cbdt",
+      "title": "CBDT taxpayer FAQs",
+      "doc_type": "faq",
+      "publisher": "Income Tax Department (via HuggingFace mirror)",
+      "vintage": "undated",
+      "applies_to_ay": null,
+      "source_url": "https://huggingface.co/datasets/msinankhan1/India_Tax_FAQs",
+      "license": "NOT DECLARED - local eval/answer-shape use only, do not redistribute",
+      "pdf_mode": null,
+      "header_style": null,
+      "notes": "Eval and answer-shape reference. Never shipped to the app, never redistributed."
+    }
+  ]
+}

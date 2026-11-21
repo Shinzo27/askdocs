@@ -1,7 +1,51 @@
 {
   "verified_on": "2026-11-21",
-  "notes": "Every entry below was fetched from this machine; http_code and bytes are measured, not assumed.",
+  "notes": "Every entry below was fetched from this machine; bytes and page counts are measured, not assumed. Two documents were fetched from Wayback snapshots of the official pages because incometaxindia.gov.in returns 403 to this network - snapshot timestamps are recorded per document.",
   "documents": [
+    {
+      "doc_id": "it-act-2025",
+      "title": "Income-tax Act, 2025",
+      "type": "act",
+      "publisher": "Ministry of Finance / Legislative Department, Govt. of India (Act No. 30 of 2025)",
+      "url": "https://www.incometaxindia.gov.in/documents/d/guest/income_tax_act_2025_as_amended_by_fa_act_2026-pdf",
+      "file": "data/raw/it_act_2025.pdf",
+      "http_code": 403,
+      "http_code_note": "live host returns 403 to this network (WAF); file retrieved from a Wayback snapshot instead",
+      "retrieved_via": "https://web.archive.org/web/20261114181853id_/...",
+      "snapshot_timestamp": "2026-11-14T18:18:53Z",
+      "bytes": 3299341,
+      "pages": 687,
+      "vintage": "as amended by Finance Act, 2026",
+      "applies_to_ay": "Tax Year 2026-27 onwards",
+      "license": "Government work - reproduce with attribution",
+      "sha256_16": "d54a0ed6a91673d1",
+      "ingested_chunks": 1779,
+      "distinct_sections": 525,
+      "sections_unparsed": 11,
+      "notes": "536 sections, 23 chapters, 16 schedules (schedules emitted as their own sections). Repeals the 1961 Act; s.536 carries the savings."
+    },
+    {
+      "doc_id": "it-rules-2026",
+      "title": "Income-tax Rules, 2026",
+      "type": "rules",
+      "publisher": "CBDT (Notification No. 22/2026, G.S.R. 198(E), 20 March 2026)",
+      "url": "https://www.incometaxindia.gov.in/documents/d/guest/en-notified-it-rules-2026-20-03-2026-pdf",
+      "file": "data/raw/it_rules_2026.pdf",
+      "http_code": 403,
+      "http_code_note": "live host returns 403 to this network (WAF); file retrieved from a Wayback snapshot instead",
+      "retrieved_via": "https://web.archive.org/web/20260412141007id_/... (range-resumed after a truncated first transfer)",
+      "snapshot_timestamp": "2026-04-12T14:10:07Z",
+      "bytes": 10111559,
+      "pages": 977,
+      "vintage": "notified 20 March 2026, in force 1 April 2026",
+      "applies_to_ay": "Tax Year 2026-27 onwards",
+      "license": "Government work - reproduce with attribution",
+      "sha256_16": "f565e0f5ff3bf8f7",
+      "ingested_chunks": 2675,
+      "distinct_sections": 333,
+      "sections_unparsed": 0,
+      "notes": "333 rules, 190 forms; replaces the Income-tax Rules, 1962."
+    },
     {
       "doc_id": "it-act-1961",
       "title": "Income-tax Act, 1961",
@@ -28,7 +72,8 @@
       "bytes": 1888392,
       "vintage": "as on 01.08.2021",
       "license": "Government work - reproduce with attribution",
-      "ingested_chunks": 578
+      "ingested_chunks": 578,
+      "distinct_sections": 175
     },
     {
       "doc_id": "cgst-rules-2017",
@@ -41,7 +86,8 @@
       "bytes": 4045447,
       "vintage": "as on 30.12.2017 (base rules)",
       "license": "Government work - reproduce with attribution",
-      "ingested_chunks": 863
+      "ingested_chunks": 863,
+      "distinct_sections": 169
     },
     {
       "doc_id": "faq-cbdt",
@@ -60,9 +106,9 @@
   "blocked": [
     {
       "url": "https://incometaxindia.gov.in/*",
-      "reason": "WAF returns 403 / 'Access Denied' to this network, including from a real browser",
-      "impact": "Income-tax Act, 2025 (in force from 01.04.2026), CBDT circulars and ITR instructions are not fetchable here",
-      "workaround": "Download manually from an Indian residential connection and drop the PDFs into data/raw/"
+      "reason": "WAF returns 403 to this network, including from a real browser",
+      "impact": "Act 2025 and Rules 2026 were obtained through Wayback snapshots of the same official URLs; CBDT circulars and ITR instructions remain unreachable",
+      "workaround": "Wayback id_ raw fetch, or a manual drop into data/raw/"
     },
     {
       "url": "https://www.indiacode.nic.in/simple-search*",
@@ -77,21 +123,21 @@
   ],
   "candidate_additions": [
     {
-      "title": "Income-tax Act, 2025",
-      "why": "It replaces the 1961 Act from 01.04.2026. Answering from a repealed Act is the single biggest accuracy risk in this project.",
-      "url_hint": "https://incometaxindia.gov.in/income-tax-act-202511",
-      "status": "needs manual download"
-    },
-    {
       "title": "CBDT circulars 2015-2026",
-      "why": "Circulars are how the department actually explains contested readings - strong retrieval signal for 'why' questions.",
-      "status": "blocked here; mirror to data/raw/circulars/"
+      "why": "Circulars are how the department explains contested readings - strong retrieval signal for 'why' questions.",
+      "status": "blocked here; needs a manual drop into data/raw/circulars/"
     },
     {
-      "title": "ITR-1..ITR-7 forms + instructions (AY 2026-27)",
+      "title": "ITR-1..ITR-7 forms + instructions (Tax Year 2026-27)",
       "why": "Procedural questions ('which ITR applies to me') are the highest-volume real user query.",
       "url_hint": "https://www.incometax.gov.in/iec/foportal/downloads",
       "status": "portal reachable; PDF list needs crawling"
+    },
+    {
+      "title": "Income-tax Act, 2025 as passed by Parliament (PRS mirror)",
+      "why": "Cross-check for the consolidated text; useful for diffing Finance Act 2026 amendments.",
+      "url_hint": "https://prsindia.org/files/bills_acts/bills_parliament/2025/Bill_as_passed_by_LS_Income_Tax_(No.2)_Bill.pdf",
+      "status": "reachable (7.8 MB, 593 pp) - not ingested to avoid duplicate-section conflicts"
     }
   ]
 }
