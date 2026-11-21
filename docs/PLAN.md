@@ -17,6 +17,8 @@ Layer tags used below: `[UI]` `[API]` `[RAG]` `[DB]` `[DATA]` `[EVAL]` `[INFRA]`
 4. `make eval` prints citation accuracy, fact recall, refusal correctness, p95 latency and cost per query.
 5. CI blocks a PR that regresses citation accuracy by more than 3 points.
 6. `README.md` shows measured numbers, not adjectives.
+7. Every merge passes the **ECC** code gate and the **UI UX Pro Max** design checklist (`docs/STANDARDS.md`) — a change that passes one and fails the other is not done.
+8. A fresh machine + a different agent can rebuild the corpus with `fetch_corpus.py` → `ingest.py` → `doctor.py` and get the same `corpus_hash`.
 
 ---
 
@@ -44,7 +46,7 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 - `[EVAL]` `eval/retrieval_eval.py` over a 25-question retrieval subset drawn from **both** Acts; report **recall@10, MRR, section hit rate** for dense-only vs BM25-only vs hybrid+rerank.
 - `[INFRA]` `docker compose up` (api, db, ollama), `Makefile` targets, pytest skeleton, pre-commit hooks, and a regression test that asserts the four original documents keep their exact chunk counts (3,868 / 578 / 863 / 1,317).
 
-**Exit criteria:** `docker compose up` + one curl returns citations with section, vintage and page; hybrid+rerank beats dense-only on section hit rate; recall@10 ≥ 0.85; the comparison table is committed in `docs/eval/retrieval-w1.md`.
+**Exit criteria:** `docker compose up` + one curl returns citations with section, vintage and page; hybrid+rerank beats dense-only on section hit rate; recall@10 ≥ 0.85; the comparison table is committed in `docs/eval/retrieval-w1.md`; `python scripts/doctor.py` prints READY on a clean checkout after `fetch_corpus.py` + `ingest.py`; the retrieval code passes an `api-design` + `postgres-patterns` review before merge.
 
 ---
 
@@ -55,7 +57,7 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 - `[RAG]` **Citation validator:** parse `[n]` → map to chunk → assert the section exists in the context → strip or reject unsupported claims; message carries `citation_valid` plus a reason.
 - `[API]` `POST /api/v1/ask` SSE stream: `retrieval` → `token`×n → `citation`×n → `usage` → `done` | `error`; request id on every event; client disconnect cancels generation server-side.
 - `[API]` `Generator` protocol with Ollama / OpenAI / Gemini adapters, per-adapter timeout, retry and price table (cost is computed, not claimed).
-- `[UI]` Next.js 16 chat shell: streamed message, inline `[n]` markers, collapsible source list, explicit refusal state, scope banner, `⌘/Ctrl+Enter` submit, light/dark tokens.
+- `[UI]` Next.js 16 chat shell: streamed message, inline `[n]` markers, collapsible source list, explicit refusal state, scope banner, `⌘/Ctrl+Enter` submit, light/dark tokens. **Governed by `design-system/askdocs/MASTER.md`** — citation chip, streamed-answer and refusal rules are specified there, and the pre-delivery checklist is the review gate. Deviations go in `design-system/askdocs/pages/ask.md`.
 - `[EVAL]` First end-to-end 40-question run; publish `docs/eval/baseline-w2.json`.
 - `[INFRA]` CI: ruff + mypy + pytest + tsc + eslint + vitest on every PR.
 
@@ -65,7 +67,7 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 
 ## Week 3 · Product surface (7–13 Dec)
 
-- `[UI]` **Citation viewer:** side panel with the exact section text, document, vintage, page; deep link `/s/[doc]/[section]?page=…`; "open in PDF" jumps to `#page=`.
+- `[UI]` **Citation viewer:** side panel with the exact section text, document, vintage, page; deep link `/s/[doc]/[section]?page=…`; "open in PDF" jumps to `#page=`. Panel behaviour (order of metadata, focus return, Escape, print) is specified in `design-system/askdocs/MASTER.md`.
 - `[UI]` Conversation history on a server-issued session cookie (no login in v1), rename/delete, read-only share link; full empty/loading/error states; `aria-live` for streaming; keyboard-navigable; AA contrast.
 - `[API]` Feedback endpoint (helpful / not + reason tags), aggregation endpoints `/api/v1/stats` and `/api/v1/evals/latest` so the eval numbers are visible in the product, not just in the repo.
 - `[RAG]` History-aware follow-ups (query condensation before retrieval), embedding + retrieval caching, token-bucket rate limit at 20 req/min/IP.
@@ -81,7 +83,8 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 - `[INFRA]` Deploy: Next.js on Vercel, FastAPI (Docker) on Render, Postgres + pgvector on Neon; secrets in platform env; `/healthz`, `/readyz`, structured JSON logs, request-id propagation.
 - `[INFRA]` Load test 20 concurrent SSE streams: record p95 first-token and end-to-end, cold-start behaviour, and cost per query; fix the tail (connection pooling, statement timeouts).
 - `[EVAL]` Final 40-question report with per-question breakdown — **published including the failures**, plus the metric table in the README.
-- `[TEST]` Playwright e2e (ask → cite → feedback → history), ≥ 70 % coverage on the retrieval and citation modules, security pass: prompt injection via retrieved text, XSS in rendered answers, no provider key in the browser bundle.
+- `[TEST]` Playwright e2e (ask → cite → feedback → history), ≥ 70 % coverage on the retrieval and citation modules, security pass via the ECC `security-review` skill: prompt injection through retrieved statute text, XSS in rendered answers, no provider key in the browser bundle.
+- `[UI]` Final design sign-off against the `ui-ux-pro-max` pre-delivery checklist in `design-system/askdocs/MASTER.md`: 375 / 768 / 1024 / 1440, 200 % zoom, keyboard-only pass, `prefers-reduced-motion`, light + dark contrast.
 - `[DOCS]` README numbers filled in, 90-second demo recording, final architecture diagram, ADRs updated with the thresholds actually chosen.
 
 **Exit criteria:** public URL works from a clean browser profile; CI green; README shows measured citation accuracy / latency / cost; demo recording exists.

@@ -28,6 +28,8 @@ India's Income-tax Act, 1961 was replaced by the **Income-tax Act, 2025**, in fo
 | Layer | State |
 |---|---|
 | **Corpus + ingestion** | ✅ Done — 6 official documents → 11,080 section-tagged chunks, both Acts included |
+| **Reproducibility** | ✅ Done — `fetch_corpus.py` (hash-verified, Wayback fallback), `doctor.py`, `AGENTS.md`, persisted design system |
+| **Standards** | ✅ Defined — ECC for code review, UI UX Pro Max for UI; gates in `docs/STANDARDS.md` |
 | **Retrieval (hybrid + rerank)** | 🚧 Week 1 |
 | **Grounded generation + streaming API** | 🚧 Week 2 |
 | **Chat UI, citation viewer, history** | 🚧 Week 2–3 |
@@ -106,11 +108,15 @@ cd askdocs
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-# ingestion is stdlib-only: no pip install, no API key, no network
-python scripts/ingest.py
-# -> data/processed/chunks.jsonl  (11,080 chunks across 6 documents)
-# -> data/processed/stats.json
+python scripts/fetch_corpus.py   # re-acquires the 6 documents, hash-verified
+python scripts/ingest.py         # -> data/processed/chunks.jsonl (11,080 chunks)
+python scripts/doctor.py         # environment + corpus integrity; must print READY
 ```
+
+(`bash`/`zsh`: same commands, `source .venv/bin/activate` instead of the PowerShell activate line.)
+
+`fetch_corpus.py` tries the live source first and falls back to a Wayback snapshot of the same URL — `incometaxindia.gov.in` returns 403 to this network, and Wayback truncates large transfers, so the script resumes with HTTP Range requests until the byte count matches the recorded size. Every file is verified against the SHA-256 prefix in `data/manifest.json`, so a re-fetch cannot quietly change the corpus your eval numbers came from. `doctor.py` prints the `corpus_hash` to quote in every eval report.
+
 
 The only external dependency is poppler's `pdftotext` binary (`winget install oschwartz10612.Poppler` on Windows, `apt install poppler-utils` on Debian). Pipeline dependencies are pinned in `requirements-dev.txt` from Week 1, when the retrieval and eval code lands.
 
@@ -118,6 +124,32 @@ The only external dependency is poppler's `pdftotext` binary (`winget install os
 The raw corpus is deliberately **not** committed: 16 MB of government PDFs and a 10 MB chunk file do not belong in git. `data/raw/` and `data/processed/` are gitignored; `data/sources.json` records where every file came from and the SHA-verified byte size.
 
 The application stack (`docker compose up`) arrives in Week 1 — this README will grow a one-command path once there is something to run.
+
+---
+
+## Portable by construction
+
+Switching laptops, or switching agent, should not change the answers. Four things make that true:
+
+| Mechanism | What it prevents |
+|---|---|
+| [`AGENTS.md`](AGENTS.md) — the entry point any agent reads first: invariants, commands, traps already paid for | an agent re-deriving the parser from scratch and losing 23 sections |
+| `scripts/fetch_corpus.py` + hashes in `data/manifest.json` | a re-downloaded corpus that silently differs from the one the numbers came from |
+| `scripts/doctor.py` — interpreter, poppler, per-document hashes, pinned chunk counts, `corpus_hash` | "it works on my machine"; a parser tweak that shrinks the corpus |
+| [`design-system/askdocs/MASTER.md`](design-system/askdocs/MASTER.md) — persisted design system, page overrides in `pages/` | each new session inventing a different UI |
+
+The corpus is 20 MB of government PDFs, deliberately **not** committed, so the bootstrap is `fetch → ingest → doctor`, and `doctor` is the gate: it fails loudly rather than letting a partial corpus be cited from.
+
+## How quality is decided
+
+Two external skill sets are the review criteria, not decoration. Details and install commands: **[docs/STANDARDS.md](docs/STANDARDS.md)**.
+
+| Toolchain | Decides | Artefact |
+|---|---|---|
+| [**ECC**](https://github.com/affaan-m/ECC) — agent-harness OS (72 agents, 328 skills) | code review, API design, DB/retrieval patterns, security, testing, delivery | gate table in `docs/STANDARDS.md` |
+| [**UI UX Pro Max**](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | design system, accessibility, interaction, responsive layout | `design-system/askdocs/` (Master + tokens + page overrides) |
+
+A change passes only when the code gate **and** the design checklist both pass; a README claim must name the artefact that proves it.
 
 ---
 
@@ -155,6 +187,7 @@ Thresholds, question distribution and the CI gate are specified in **[docs/EVAL.
 - Streaming LLM UX: token-level SSE, citation events, refusal states, inline source panel.
 - Provider abstraction with a local default — no vendor lock, no API key needed to run it.
 - Measurement discipline: golden set, per-metric thresholds, CI regression gate, cost and latency telemetry.
+- Reproducible engineering: hash-pinned corpus re-fetch with a live→archive fallback, a `doctor` gate on the corpus, an agent-agnostic `AGENTS.md` handoff, and a committed design system so a different machine or agent produces the same result.
 - Full-stack delivery: typed API contract, Postgres schema and migrations, Docker, CI, deployment.
 
 ## License

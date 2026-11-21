@@ -111,3 +111,18 @@ Short ADRs. Each records the option that was rejected, because that is the part 
 The four original documents now have an asserted chunk count (3,868 / 578 / 863 / 1,317), so any of these regressions fails a test instead of quietly shrinking the corpus.
 
 **Honest residual.** 27 of 536 sections in the 2025 Act match neither header signal; they stay attached to the preceding section, are reported as `sections_unparsed`, and are excluded from the golden set. Fixing them means font-level extraction (bold spans), which is a Week 2 problem at the earliest — a section count that is 95 % right and honestly reported beats a parser that lies.
+
+---
+
+## ADR-012 — Two external skill sets are the review gate, and their output is committed
+
+**Decision.** Code quality is judged against **ECC** (`github.com/affaan-m/ECC`) and UI quality against **UI UX Pro Max** (`github.com/nextlevelbuilder/ui-ux-pro-max-skill`). Their artefacts live in the repo: the gate table in `docs/STANDARDS.md` and the design system in `design-system/askdocs/`.
+
+**Why.** "Looks good" is not reviewable and does not survive a change of machine or agent. Committing the design system (Master + tokens + page overrides) means the next agent produces the same UI decisions instead of a new opinion; naming the ECC skills per layer means a review finding is traceable to a rule rather than to taste.
+
+**Consequences.** Regenerating the design system is a reviewed change (`--force` is not allowed silently, because the curated version deliberately overrides the generator's landing-page pattern). A change that passes the code gate but fails the design checklist is not done, and vice versa.
+
+**Rejected.** Vendoring ECC itself into the repo: it is an agent-harness surface with hooks and commands that do not transfer to every harness (its installer writes nothing into a Hermes profile), so pointing at the source of truth plus recording the decisions is more durable than copying it.
+
+---
+
