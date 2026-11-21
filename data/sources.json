@@ -1,0 +1,97 @@
+{
+  "verified_on": "2026-11-21",
+  "notes": "Every entry below was fetched from this machine; http_code and bytes are measured, not assumed.",
+  "documents": [
+    {
+      "doc_id": "it-act-1961",
+      "title": "Income-tax Act, 1961",
+      "type": "act",
+      "publisher": "Govt. of India (consolidated text)",
+      "url": "https://thc.nic.in/Central%20Governmental%20Acts/Income%20Tax%20Act%201961_.pdf",
+      "file": "data/raw/it_act_thc.pdf",
+      "http_code": 200,
+      "bytes": 8812268,
+      "pages": 956,
+      "vintage": "consolidated up to Finance Act, 2021",
+      "license": "Government work - reproduce with attribution",
+      "ingested_chunks": 3868,
+      "distinct_sections": 705
+    },
+    {
+      "doc_id": "cgst-act-2017",
+      "title": "Central Goods and Services Tax Act, 2017",
+      "type": "act",
+      "publisher": "CBIC, Ministry of Finance",
+      "url": "https://cbic-gst.gov.in/pdf/CGST-Act-Updated-01082021.pdf",
+      "file": "data/raw/cgst_act.pdf",
+      "http_code": 200,
+      "bytes": 1888392,
+      "vintage": "as on 01.08.2021",
+      "license": "Government work - reproduce with attribution",
+      "ingested_chunks": 578
+    },
+    {
+      "doc_id": "cgst-rules-2017",
+      "title": "Central Goods and Services Tax Rules, 2017",
+      "type": "rules",
+      "publisher": "CBIC, Ministry of Finance",
+      "url": "https://cbic-gst.gov.in/pdf/cgst-rules-30122017.pdf",
+      "file": "data/raw/cgst_rules.pdf",
+      "http_code": 200,
+      "bytes": 4045447,
+      "vintage": "as on 30.12.2017 (base rules)",
+      "license": "Government work - reproduce with attribution",
+      "ingested_chunks": 863
+    },
+    {
+      "doc_id": "faq-cbdt",
+      "title": "CBDT taxpayer FAQs",
+      "type": "faq",
+      "publisher": "Income Tax Department (via HuggingFace mirror)",
+      "url": "https://huggingface.co/datasets/msinankhan1/India_Tax_FAQs",
+      "file": "data/raw/tax_faqs.csv",
+      "http_code": 200,
+      "bytes": 760862,
+      "rows": 1116,
+      "license": "NOT DECLARED - local eval/answer-shape use only, do not redistribute",
+      "ingested_chunks": 1317
+    }
+  ],
+  "blocked": [
+    {
+      "url": "https://incometaxindia.gov.in/*",
+      "reason": "WAF returns 403 / 'Access Denied' to this network, including from a real browser",
+      "impact": "Income-tax Act, 2025 (in force from 01.04.2026), CBDT circulars and ITR instructions are not fetchable here",
+      "workaround": "Download manually from an Indian residential connection and drop the PDFs into data/raw/"
+    },
+    {
+      "url": "https://www.indiacode.nic.in/simple-search*",
+      "reason": "connection resets from this network",
+      "impact": "section-wise HTML of current statutes unavailable"
+    },
+    {
+      "url": "https://itat.gov.in/",
+      "reason": "no route",
+      "impact": "tribunal judgments unavailable"
+    }
+  ],
+  "candidate_additions": [
+    {
+      "title": "Income-tax Act, 2025",
+      "why": "It replaces the 1961 Act from 01.04.2026. Answering from a repealed Act is the single biggest accuracy risk in this project.",
+      "url_hint": "https://incometaxindia.gov.in/income-tax-act-202511",
+      "status": "needs manual download"
+    },
+    {
+      "title": "CBDT circulars 2015-2026",
+      "why": "Circulars are how the department actually explains contested readings - strong retrieval signal for 'why' questions.",
+      "status": "blocked here; mirror to data/raw/circulars/"
+    },
+    {
+      "title": "ITR-1..ITR-7 forms + instructions (AY 2026-27)",
+      "why": "Procedural questions ('which ITR applies to me') are the highest-volume real user query.",
+      "url_hint": "https://www.incometax.gov.in/iec/foportal/downloads",
+      "status": "portal reachable; PDF list needs crawling"
+    }
+  ]
+}
