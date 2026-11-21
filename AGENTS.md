@@ -30,6 +30,8 @@ python scripts/doctor.py        # must print READY before you trust anything
 
 `data/raw/` and `data/processed/` are gitignored on purpose: 20 MB of government PDFs plus a 9 MB chunk file are regenerable, and the FAQ mirror is not ours to redistribute. Never commit them, never "fix" a failing check by editing a recorded hash.
 
+**Handoff was tested on a clean clone** (2026-11-21): clone → `fetch_corpus.py` → `ingest.py` → `doctor.py` = READY. Expect **9,763 chunks and two warnings** on that path (the CBDT FAQ CSV needs a manual download), and a different `corpus_hash` than a full-corpus run — which is why eval reports quote the hash. Fetch 5 documents + the FAQ manually and you get the full 11,080.
+
 ## Invariants — do not break these
 
 | Invariant | Why | Enforced by |

@@ -123,16 +123,19 @@ def check_processed() -> None:
     if not counts:
         fail.append("stats.json missing or unreadable -> re-run python scripts/ingest.py")
     else:
-        drift = {k: (counts.get(k), v) for k, v in EXPECTED_CHUNKS.items()
-                 if counts.get(k) is not None and counts.get(k) != v}
+        present = {k: v for k, v in EXPECTED_CHUNKS.items() if counts.get(k) is not None}
+        drift = {k: (counts.get(k), v) for k, v in present.items() if counts.get(k) != v}
         if drift:
             fail.append("chunk counts drifted (doc: have vs expected): "
                         + ", ".join(f"{k}: {h} vs {e}" for k, (h, e) in drift.items())
                         + " -> inspect the parser, do NOT just update the pin")
         else:
-            ok.append(f"chunk counts match the pins ({sum(counts.values())} chunks)")
+            ok.append(f"chunk counts match the pins for {len(present)}/{len(EXPECTED_CHUNKS)} "
+                      f"present document(s) ({sum(counts.values())} chunks)")
         if stats.get("chunks") != TOTAL_CHUNKS:
-            warn.append(f"total chunks {stats.get('chunks')} != pinned {TOTAL_CHUNKS}")
+            warn.append(f"total {stats.get('chunks')} != pinned {TOTAL_CHUNKS} chunks: an eval-only "
+                        f"document is probably missing, so eval numbers here are NOT comparable "
+                        f"with a full-corpus run (quote corpus_hash)")
 
     h = hashlib.sha256()
     with chunks_file.open("rb") as fh:
