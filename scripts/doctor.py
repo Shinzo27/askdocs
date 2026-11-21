@@ -24,7 +24,6 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -62,21 +61,16 @@ def sha256_16(path: Path) -> str:
     return h.hexdigest()[:16]
 
 
-def main() -> int:
-    print("AskDocs doctor\n" + "=" * 60)
+def load_corpus() -> tuple[list[dict], dict[str, dict]]:
+    docs = json.loads(MANIFEST.read_text(encoding="utf-8"))["documents"]
+    sources = ({d["doc_id"]: d for d in
+                json.loads(SOURCES.read_text(encoding="utf-8"))["documents"]}
+               if SOURCES.exists() else {})
+    return docs, sources
 
-    # 1. interpreter
-    v = sys.version_info
-    check(v >= (3, 11), f"python {v.major}.{v.minor}.{v.micro}",
-          f"python {v.major}.{v.minor} is too old - use 3.11+")
 
-    # 2. poppler
-    pdftotext = shutil.which("pdftotext")
-    check(bool(pdftotext), f"pdftotext found at {pdftotext}",
-          "pdftotext missing - install poppler "
-          "(Windows: winget install oschwartz10612.Poppler | Debian: apt install poppler-utils)")
-
-    # 3. documents
+def check_documents(docs: list[dict], sources: dict[str, dict]) -> None:
+    """Presence + hash for every document; manual-acquire files are warnings."""
     if not MANIFEST.exists():
         fail.append(f"manifest missing: {MANIFEST}")
         return report()
@@ -115,35 +109,62 @@ def main() -> int:
     if only_in_sources:
         warn.append(f"in sources.json but not in the manifest: {', '.join(sorted(only_in_sources))}")
 
-    # 4. processed corpus
+
+def check_processed() -> None:
+    """Chunk file, pinned per-document counts, and the corpus hash."""
     chunks_file = PROCESSED / "chunks.jsonl"
     if not chunks_file.exists():
         fail.append("data/processed/chunks.jsonl missing -> run: python scripts/ingest.py")
-    else:
-        stats_path = PROCESSED / "stats.json"
-        stats = json.loads(stats_path.read_text(encoding="utf-8")) if stats_path.exists() else {}
-        counts = stats.get("chunks_by_doc", {})
-        if not counts:
-            fail.append("stats.json missing or unreadable -> re-run python scripts/ingest.py")
-        else:
-            drift = {k: (counts.get(k), v) for k, v in EXPECTED_CHUNKS.items()
-                     if counts.get(k) is not None and counts.get(k) != v}
-            if drift:
-                fail.append("chunk counts drifted (doc: have vs expected): "
-                            + ", ".join(f"{k}: {h} vs {e}" for k, (h, e) in drift.items())
-                            + " -> inspect the parser, do NOT just update the pin")
-            else:
-                ok.append(f"chunk counts match the pins ({sum(counts.values())} chunks)")
-            if stats.get("chunks") != TOTAL_CHUNKS:
-                warn.append(f"total chunks {stats.get('chunks')} != pinned {TOTAL_CHUNKS}")
+        return
 
-        # corpus hash: cheap, stable identity for an eval run
-        h = hashlib.sha256()
-        with chunks_file.open("rb") as fh:
-            for block in iter(lambda: fh.read(1 << 20), b""):
-                h.update(block)
-        print(f"\ncorpus_hash(sha256:12) = {h.hexdigest()[:12]}  "
-              f"(quote this in every eval report)")
+    stats_path = PROCESSED / "stats.json"
+    stats = json.loads(stats_path.read_text(encoding="utf-8")) if stats_path.exists() else {}
+    counts = stats.get("chunks_by_doc", {})
+    if not counts:
+        fail.append("stats.json missing or unreadable -> re-run python scripts/ingest.py")
+    else:
+        drift = {k: (counts.get(k), v) for k, v in EXPECTED_CHUNKS.items()
+                 if counts.get(k) is not None and counts.get(k) != v}
+        if drift:
+            fail.append("chunk counts drifted (doc: have vs expected): "
+                        + ", ".join(f"{k}: {h} vs {e}" for k, (h, e) in drift.items())
+                        + " -> inspect the parser, do NOT just update the pin")
+        else:
+            ok.append(f"chunk counts match the pins ({sum(counts.values())} chunks)")
+        if stats.get("chunks") != TOTAL_CHUNKS:
+            warn.append(f"total chunks {stats.get('chunks')} != pinned {TOTAL_CHUNKS}")
+
+    h = hashlib.sha256()
+    with chunks_file.open("rb") as fh:
+        for block in iter(lambda: fh.read(1 << 20), b""):
+            h.update(block)
+    print(f"\ncorpus_hash(sha256:12) = {h.hexdigest()[:12]}  "
+          f"(quote this in every eval report)")
+
+
+def main() -> int:
+    print("AskDocs doctor\n" + "=" * 60)
+
+    # 1. interpreter
+    v = sys.version_info
+    check(v >= (3, 11), f"python {v.major}.{v.minor}.{v.micro}",
+          f"python {v.major}.{v.minor} is too old - use 3.11+")
+
+    # 2. poppler
+    pdftotext = shutil.which("pdftotext")
+    check(bool(pdftotext), f"pdftotext found at {pdftotext}",
+          "pdftotext missing - install poppler "
+          "(Windows: winget install oschwartz10612.Poppler | Debian: apt install poppler-utils)")
+
+    # 3. documents
+    if not MANIFEST.exists():
+        fail.append(f"manifest missing: {MANIFEST}")
+        return report()
+    docs, sources = load_corpus()
+    check_documents(docs, sources)
+
+    # 4. processed corpus
+    check_processed()
 
     # 5. vintage metadata, the thing that keeps answers honest
     no_vintage = [d["doc_id"] for d in docs if not d.get("vintage")]

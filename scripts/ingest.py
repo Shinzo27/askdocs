@@ -219,6 +219,67 @@ def scan_rows(pages: list[str], header_style: str) -> list[Row]:
     return rows
 
 
+def _section_number(sec: str) -> int:
+    """Numeric part of a section key ("80C" -> 80); -1 when it has none."""
+    m = re.match(r"^(\d+)", sec)
+    return int(m.group(1)) if m else -1
+
+
+def _sort_key(sec: str) -> tuple[int, str]:
+    n = _section_number(sec)
+    return (n, sec[len(str(n)):])
+
+
+def _anchor_starts(flat: list[tuple[int, str]]) -> dict[int, tuple[str, str | None]]:
+    """Pass 1: line indexes whose number line carries a first sub-section `(1)`.
+
+    High precision, but blind to sections that have no sub-sections (13, 16, 25).
+    Numbers must advance, so a table row inside an earlier section cannot
+    restart the sequence.
+    """
+    starts: dict[int, tuple[str, str | None]] = {}
+    last: tuple[int, str] | None = None
+    for i, (_page, s) in enumerate(flat):
+        m = NUM_HEAD_RE.match(s)
+        if not m:
+            continue
+        has_sub = "(1)" in s[:14] or (i + 1 < len(flat) and flat[i + 1][1].startswith("(1)"))
+        if not has_sub:
+            continue
+        k = _sort_key(m.group(1))
+        if last is not None and k <= last:
+            continue
+        prev = flat[i - 1][1] if i else ""
+        starts[i] = (m.group(1), prev.rstrip(".") if looks_like_title(prev) else None)
+        last = k
+    return starts
+
+
+def _fill_gaps(flat: list[tuple[int, str]], starts: dict[int, tuple[str, str | None]]) -> None:
+    """Pass 2: recover missing section numbers between two anchors, in place.
+
+    Bounded by the neighbouring anchors - an unbounded "previous line looks like
+    a title" rule accepts table rows inside section 2 as section 100.
+    """
+    top = max((_section_number(sec) for sec, _ in starts.values()), default=0)
+    known = {_section_number(sec) for sec, _ in starts.values()}
+    for want in range(1, top + 1):
+        if want in known:
+            continue
+        lo = max((i for i, (sec, _t) in starts.items() if _section_number(sec) < want), default=-1)
+        hi = min((i for i, (sec, _t) in starts.items() if _section_number(sec) > want), default=len(flat))
+        for i in range(lo + 1, hi):
+            m = NUM_HEAD_RE.match(flat[i][1])
+            if not m or _section_number(m.group(1)) != want:
+                continue
+            prev = flat[i - 1][1] if i else ""
+            nxt = flat[i + 1][1] if i + 1 < len(flat) else ""
+            if looks_like_title(prev) or nxt.startswith("(1)"):
+                starts[i] = (m.group(1), prev.rstrip(".") if looks_like_title(prev) else None)
+                known.add(want)
+                break
+
+
 def scan_rows_above(pages: list[str]) -> list[Row]:
     """Parse documents whose section header sits ABOVE the number line.
 
@@ -227,19 +288,9 @@ def scan_rows_above(pages: list[str]) -> list[Row]:
         Repeal and savings.
         536.(1) The Income-tax Act, 1961 (43 of 1961) is hereby repealed.
 
-    Two passes, because no single signal covers every section:
-
-    1. **Anchors** - a number line whose first sub-section marker ``(1)`` is on
-       the same line or the next one. High precision, but blind to sections
-       that have no sub-sections (13, 16, 25 ...).
-    2. **Gap fill** - between two anchors, accept the line whose number equals
-       the missing section and whose preceding line looks like a title.
-       Bounded by the surrounding anchors, so a table row inside section 2
-       cannot claim a number that belongs to section 100.
-
-    Anything left over stays attached to the preceding section instead of being
-    guessed, and the parsed count is reported by the caller. Measured on the
-    2025 Act: 536 sections -> 513 anchored, 23 unparsed (reported, not hidden).
+    Two passes (see `_anchor_starts`, `_fill_gaps`): anchors first, then
+    gap-fill bounded by the surrounding anchors. Measured on the 2025 Act:
+    536 sections -> 509 anchored, 27 unparsed (reported, not hidden).
     """
     flat: list[tuple[int, str]] = []
     for page_no, page in enumerate(pages, start=1):
@@ -250,47 +301,8 @@ def scan_rows_above(pages: list[str]) -> list[Row]:
             if s:
                 flat.append((page_no, s))
 
-    def num(sec: str) -> int:
-        m = re.match(r"^(\d+)", sec)
-        return int(m.group(1)) if m else -1
-
-    def sort_key(sec: str) -> tuple[int, str]:
-        n = num(sec)
-        return (n, sec[len(str(n)):])
-
-    starts: dict[int, tuple[str, str | None]] = {}
-    last: tuple[int, str] | None = None
-    for i, (_page, s) in enumerate(flat):
-        m = NUM_HEAD_RE.match(s)
-        if not m:
-            continue
-        has_sub = "(1)" in s[:14] or (i + 1 < len(flat) and flat[i + 1][1].startswith("(1)"))
-        if not has_sub:
-            continue
-        k = sort_key(m.group(1))
-        if last is not None and k <= last:
-            continue
-        prev = flat[i - 1][1] if i else ""
-        starts[i] = (m.group(1), prev.rstrip(".") if looks_like_title(prev) else None)
-        last = k
-
-    top = max((num(sec) for sec, _ in starts.values()), default=0)
-    known = {num(sec) for sec, _ in starts.values()}
-    for want in range(1, top + 1):
-        if want in known:
-            continue
-        lo = max((i for i, (sec, _t) in starts.items() if num(sec) < want), default=-1)
-        hi = min((i for i, (sec, _t) in starts.items() if num(sec) > want), default=len(flat))
-        for i in range(lo + 1, hi):
-            m = NUM_HEAD_RE.match(flat[i][1])
-            if not m or num(m.group(1)) != want:
-                continue
-            prev = flat[i - 1][1] if i else ""
-            nxt = flat[i + 1][1] if i + 1 < len(flat) else ""
-            if looks_like_title(prev) or nxt.startswith("(1)"):
-                starts[i] = (m.group(1), prev.rstrip(".") if looks_like_title(prev) else None)
-                known.add(want)
-                break
+    starts = _anchor_starts(flat)
+    _fill_gaps(flat, starts)
 
     rows: list[Row] = []
     cur_sec: str | None = None
@@ -412,48 +424,57 @@ def sha256_16(path: Path) -> str:
     return h.hexdigest()[:16]
 
 
-def main() -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
+def discover_docs() -> list[dict]:
+    """Manifest documents plus any PDF dropped into data/raw/ that it misses."""
     docs = load_manifest()
     mapped = {d["file"] for d in docs}
-
-    # anything dropped in data/raw that the manifest does not know about
     for extra in sorted(RAW.glob("*.pdf")):
         if extra.name not in mapped:
             docs.append(infer_doc(extra))
+    return docs
 
-    all_chunks: list[Chunk] = []
-    report: dict[str, dict] = {}
 
-    for doc in docs:
-        path = RAW / doc["file"]
-        if not path.exists():
-            print(f"- skip {doc['file']} (missing - see data/README.md)")
-            continue
-        print(f"+ {doc['file']} ...", end=" ", flush=True)
+def ingest_document(doc: dict) -> tuple[list[Chunk], dict] | None:
+    """Chunks + a stats entry for one document; None when the file is absent."""
+    path = RAW / doc["file"]
+    if not path.exists():
+        print(f"- skip {doc['file']} (missing - see data/README.md)")
+        return None
 
-        if path.suffix.lower() == ".csv":
-            produced = ingest_faqs(path, doc)
-            report[doc["doc_id"]] = {"chunks": len(produced)}
-        else:
-            pdf_mode = doc.get("pdf_mode", "layout")
-            header_style = doc.get("header_style", "auto")
-            if header_style == "auto":
-                pages = pdf_to_pages(path, pdf_mode)
-                header_style = detect_header_style(pages) if pages else "inline"
-            produced = ingest_statute(path, doc, pdf_mode, header_style)
-            parsed = {c.section for c in produced if c.section}
-            declared = doc.get("declared_sections")
-            report[doc["doc_id"]] = {
-                "chunks": len(produced), "pdf_mode": pdf_mode,
-                "header_style": header_style,
-                "sections": len(parsed),
-                # only set when the manifest declares the document's own count
-                "sections_unparsed": (declared - len(parsed)) if declared else None,
-            }
-        print(f"{len(produced)} chunks")
-        all_chunks.extend(produced)
+    print(f"+ {doc['file']} ...", end=" ", flush=True)
+    if path.suffix.lower() == ".csv":
+        produced = ingest_faqs(path, doc)
+        entry: dict = {"chunks": len(produced)}
+    else:
+        pdf_mode = doc.get("pdf_mode", "layout")
+        header_style = doc.get("header_style", "auto")
+        if header_style == "auto":
+            pages = pdf_to_pages(path, pdf_mode)
+            header_style = detect_header_style(pages) if pages else "inline"
+        produced = ingest_statute(path, doc, pdf_mode, header_style)
+        declared = doc.get("declared_sections")
+        parsed_all = entry_sections(produced)
+        # schedules are their own keys but are NOT numbered sections, so they
+        # must not count towards the declared-section reconciliation
+        parsed_numbered = len({c.section for c in produced
+                               if c.section and c.section[:1].isdigit()})
+        entry = {
+            "chunks": len(produced), "pdf_mode": pdf_mode,
+            "header_style": header_style,
+            "sections": parsed_all, "sections_numbered": parsed_numbered,
+            # only set when the manifest declares the document's own count
+            "sections_unparsed": (declared - parsed_numbered) if declared else None,
+        }
+    print(f"{len(produced)} chunks")
+    return produced, entry
 
+
+def entry_sections(chunks: list[Chunk]) -> int:
+    """Distinct section keys, including SCHEDULE I..XVI."""
+    return len({c.section for c in chunks if c.section})
+
+
+def write_outputs(all_chunks: list[Chunk], docs: list[dict], report: dict[str, dict]) -> None:
     with (OUT / "chunks.jsonl").open("w", encoding="utf-8") as fh:
         for c in all_chunks:
             fh.write(json.dumps(asdict(c), ensure_ascii=False) + "\n")
@@ -483,6 +504,23 @@ def main() -> None:
     (OUT / "stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
     print(json.dumps({k: stats[k] for k in
                       ("chunks", "chunks_by_doc", "distinct_sections", "total_chars")}, indent=2))
+
+
+def main() -> None:
+    OUT.mkdir(parents=True, exist_ok=True)
+    docs = discover_docs()
+    all_chunks: list[Chunk] = []
+    report: dict[str, dict] = {}
+
+    for doc in docs:
+        result = ingest_document(doc)
+        if result is None:
+            continue
+        produced, entry = result
+        report[doc["doc_id"]] = entry
+        all_chunks.extend(produced)
+
+    write_outputs(all_chunks, docs, report)
 
 
 if __name__ == "__main__":
