@@ -6,14 +6,14 @@ Answers are built from official government documents, not scraped commentary. Ev
 
 | Document | Publisher | Vintage | Applies to | Pages | Sections | Chunks |
 |---|---|---|---|---|---|---|
-| **Income-tax Act, 2025** | Govt. of India — Act No. 30 of 2025 | as amended by **Finance Act, 2026** | Tax Year 2026-27 onwards | 687 | 509 of 536 + 16 schedules | 1,779 |
-| **Income-tax Rules, 2026** | CBDT, Notification 22/2026 · G.S.R. 198(E) | notified 20 Mar 2026 | Tax Year 2026-27 onwards | 977 | 333 of 333 | 2,675 |
-| Income-tax Act, 1961 | Govt. of India (consolidated, thc.nic.in) | up to Finance Act, **2021** | AY 2026-27 and earlier | 956 | 705 | 3,868 |
-| CGST Act, 2017 | CBIC | as on 01.08.2021 | GST — ongoing | — | 175 | 578 |
-| CGST Rules, 2017 | CBIC | as on 30.12.2017 | GST — ongoing | — | 169 | 863 |
+| **Income-tax Act, 2025** | Govt. of India — Act No. 30 of 2025 | as amended by **Finance Act, 2026** | Tax Year 2026-27 onwards | 687 | 513 of 536 + 16 schedules | 1,762 |
+| **Income-tax Rules, 2026** | CBDT, Notification 22/2026 · G.S.R. 198(E) | notified 20 Mar 2026 | Tax Year 2026-27 onwards | 977 | 327 of 333 | 2,670 |
+| Income-tax Act, 1961 | Govt. of India (consolidated, thc.nic.in) | up to Finance Act, **2021** | AY 2026-27 and earlier | 956 | 768 | 3,852 |
+| CGST Act, 2017 | CBIC | as on 01.08.2021 | GST — ongoing | — | 168 | 579 |
+| CGST Rules, 2017 | CBIC | as on 30.12.2017 | GST — ongoing | — | 176 | 889 |
 | CBDT taxpayer FAQs | Income Tax Dept (HF mirror) | undated | eval / answer shape only | — | — | 1,317 |
 
-**11,080 chunks · 8.72 M characters · 1,907 distinct (document, section) pairs.** Median chunk 891 chars, mean 787, hard cap 1,344.
+**11,069 chunks · 8.69 M characters · 1,968 distinct (document, section) pairs.** Median chunk 877 chars, mean 785, hard cap 1,343. Measured with **pdftotext 26.11.0**; the version is written into `data/processed/stats.json` as `extractor` and `doctor.py` compares it with the pin, because chunk counts are a function of the PDF bytes *and* the extractor's layout.
 
 Both Acts are in the corpus on purpose. The 2025 Act governs income from 1 April 2026; the 1961 Act still governs every tax year that began before it — returns, assessments, appeals, TDS corrections (s. 536 savings). An assistant that knows only one of them is wrong half the time, so `applies_to_ay` is stored per document and surfaced in every answer.
 
@@ -66,14 +66,16 @@ Header detection for the `above` style runs in two passes, because no single sig
 1. **Anchors** — a number line whose first sub-section marker `(1)` is on the same line or the next. High precision; blind to sections that have no sub-sections (13, 16, 25 …).
 2. **Gap fill** — between two anchors, accept the line whose number equals the missing section and whose preceding line looks like a title. Bounding by the surrounding anchors is what stops a table row inside section 2 from claiming section 100.
 
-Two traps that cost real chunks while building this, both now regression-checked against the four original documents (3,868 / 578 / 863 / 1,317 chunks must not move):
+Two traps that cost real chunks while building this, both now regression-checked against the four original documents (3,852 / 579 / 889 / 1,317 chunks must not move):
 
 - The 2025 Act prints `9.(1)` with **no space** after the dot; requiring whitespace silently dropped 23 sections.
 - Counting both header patterns in table-of-contents detection flagged rule-PDF body pages as TOC and dropped **28 chunks** of the CGST Rules.
 
+A third trap is extractor-dependent, and it is the reason the version is now recorded. Amended sections carry a footnote marker (`4[80C.`). poppler 26.11.0 lifts that footnote digit onto its own line, leaving a bare `[80C.` — which the original pattern did not tolerate. On that build **279 sections of the 1961 Act vanished**, including 80C, 80CCD, 80D and 44ADA: the most-cited deduction sections in the product. `SECTION_RE` now accepts a bare leading `[` and three-letter suffixes (`44ADA`, `80CCC`), and the recovered count is higher than before, not lower — 768 section keys against 705 — so the change added content rather than papering over a loss.
+
 Also: the Act's 16 schedules follow section 536, so they are emitted as their own sections (`SCHEDULE I` … `SCHEDULE XVI`). Without that, a deduction table cites "Section 536 — Repeal and savings".
 
-**Honest gap:** 509 of 536 sections of the 2025 Act are anchored; sections whose headers match neither signal stay attached to the preceding section. The count is reported in `data/processed/stats.json` as `sections_unparsed`, and those sections are excluded from the golden set rather than guessed at.
+**Honest gap:** 513 of 536 sections of the 2025 Act are anchored; sections whose headers match neither signal stay attached to the preceding section. The count is reported in `data/processed/stats.json` as `sections_unparsed`, and those sections are excluded from the golden set rather than guessed at.
 
 ## Chunk schema (`data/processed/chunks.jsonl`)
 

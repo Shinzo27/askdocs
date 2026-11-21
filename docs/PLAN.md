@@ -75,7 +75,7 @@ Screenshots are captured from the running app, not from a mock — a design prev
 
 ## Week 1 · Ground truth first (23–29 Nov)
 
-**Corpus status: complete.** Both Acts and both rule sets are ingested and measured (11,080 chunks, 1,907 document/section pairs) by pulling the blocked official PDFs through Wayback snapshots. What remains in this week is the machinery *on top of* the corpus.
+**Corpus status: complete.** Both Acts and both rule sets are ingested and measured (11,069 chunks, 1,968 document/section pairs) by pulling the blocked official PDFs through Wayback snapshots. What remains in this week is the machinery *on top of* the corpus.
 
 - `[DATA]` Corpus v2 is in place; the remaining ingestion work is the **CBDT circular drop** (`data/raw/circulars/`) if you can fetch them, plus a `--verify` mode that re-checks SHA-256 prefixes and page counts against `data/sources.json`.
 - `[DATA]` `scripts/embed.py` — batched bge-small encoding, idempotent by content hash, writes an embedding manifest (model, dimension, chunk count, hash) so a model change is detected instead of silently mixing vectors.
@@ -83,7 +83,7 @@ Screenshots are captured from the running app, not from a mock — a design prev
 - `[RAG]` Hybrid retrieval: dense top-50 ∥ full-text top-50 → **Reciprocal Rank Fusion** → cross-encoder rerank → section-level dedupe → top-6. `GET /api/v1/search?q=` returns scored passages with section, chapter, page, vintage and `?debug=1` score breakdown.
 - `[EVAL]` `eval/retrieval_eval.py` over a 25-question retrieval subset drawn from **both** Acts; report **recall@10, MRR, section hit rate** for dense-only vs BM25-only vs hybrid+rerank.
 - `[UI]` **App shell** — Next.js 16 route tree (`/`, `/corpus`, `/history`, `/about`), Tailwind 4 theme generated from `design-system/askdocs/tokens.json`, EB Garamond + Lato + mono with `font-display: swap`, nav + skip-link, and an empty state per route. Fixture JSON only: no API calls yet, so the shell is reviewable before the backend exists.
-- `[INFRA]` `docker compose up` (api, db, ollama), `Makefile` targets, pytest skeleton, pre-commit hooks, and a regression test that asserts the four original documents keep their exact chunk counts (3,868 / 578 / 863 / 1,317).
+- `[INFRA]` `docker compose up` (api, db, ollama), `Makefile` targets, pytest skeleton, pre-commit hooks, and a regression test that asserts the four original documents keep their exact chunk counts (3,852 / 579 / 889 / 1,317).
 
 **Exit criteria:** `docker compose up` + one curl returns citations with section, vintage and page; hybrid+rerank beats dense-only on section hit rate; recall@10 ≥ 0.85; the comparison table is committed in `docs/eval/retrieval-w1.md`; **the app shell runs at `localhost:3000` with tokens applied and an empty state on every route**; `python scripts/doctor.py` prints READY on a clean checkout after `fetch_corpus.py` + `ingest.py`; the retrieval code passes an `api-design` + `postgres-patterns` review before merge.
 
@@ -192,7 +192,7 @@ askdocs/
 
 | Week | Line it earns on a résumé |
 |---|---|
-| 1 | Built a layout-aware, section-anchored ingestion pipeline over six government documents (11,080 chunks, 1,907 document/section pairs) — recovering 509 of 536 sections from a two-column gazette PDF — and a retrieval layer combining pgvector cosine search with Postgres full-text via Reciprocal Rank Fusion plus cross-encoder reranking. |
+| 1 | Built a layout-aware, section-anchored ingestion pipeline over six government documents (11,069 chunks, 1,968 document/section pairs) — recovering 513 of 536 sections from a two-column gazette PDF — and a retrieval layer combining pgvector cosine search with Postgres full-text via Reciprocal Rank Fusion plus cross-encoder reranking. |
 | 2 | Engineered grounded generation with server-side citation validation and a confidence-based refusal path, cutting unsupported claims by construction; streamed answers over SSE with per-request latency and cost telemetry. |
 | 3 | Shipped the product surface — citation viewer with PDF page deep links, persistent history, feedback capture, and an in-app evaluation dashboard — with rate limiting and history-aware query rewriting. |
 | 4 | Deployed a full-stack RAG service (Next.js + FastAPI + Neon pgvector) with CI regression gates on citation accuracy, load-tested to 20 concurrent streams, and documented measured accuracy, latency and cost per query. |

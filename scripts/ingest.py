@@ -46,9 +46,15 @@ OVERLAP = 150
 MIN_CHUNK = 120  # drop page furniture / stray headers
 
 # "12A. Title" / "2. Definitions." at line start, up to 10 spaces of indent.
-# Statute PDFs prefix amended sections with footnote markers, e.g. "4[80C. ...",
-# so an optional leading "N[" or "*" must be tolerated or whole sections vanish.
-SECTION_RE = re.compile(r"^\s{0,10}(?:\d{1,2}\[\s*|\*+\s*)?(\d{1,3}[A-Z]{0,2})\.\s+([A-Z\[(][^\n]{2,120})")
+# Statute PDFs prefix amended sections with footnote markers, e.g. "4[80C. ...".
+# Two shapes of that prefix occur depending on the pdftotext build: the footnote
+# number inline ("4[80C.") or lifted onto its own line, leaving a bare "[80C."
+# (measured: poppler 26.11.0 splits it, and without the bare-bracket branch every
+# amended section vanished - 80C, 80D, 44ADA - dropping 279 sections of the 1961
+# Act). Suffixes go up to three letters: 44ADA, 80CCC, 80CCD.
+SECTION_RE = re.compile(
+    r"^\s{0,10}(?:\[\s*|\d{1,2}\[\s*|\*+\s*)?(\d{1,3}[A-Z]{0,3})\.\s+([A-Z\[(][^\n]{2,120})"
+)
 # Header style "above": a title line, then "<num>. (1) body..." beneath it.
 # The 2025 Act prints "9.(1)" with no space after the dot, so whitespace cannot
 # be required - only that the number is followed by space, end of line or "(".
@@ -81,6 +87,24 @@ class Chunk:
 # --------------------------------------------------------------------------- #
 # extraction
 # --------------------------------------------------------------------------- #
+
+def extractor_version() -> dict:
+    """The extraction binary is part of the corpus provenance, not a detail.
+
+    Chunk counts are a function of the PDF bytes *and* how pdftotext lays the
+    text out: poppler 26.11.0 lifts the amendment footnote digit onto its own
+    line, which changes which lines look like section headers. Recording the
+    version lets `doctor.py` say "same pins, different extractor" instead of
+    pretending two corpora are comparable.
+    """
+    try:
+        out = subprocess.run(["pdftotext", "-v"], capture_output=True, text=True)
+        blob = (out.stderr or "") + (out.stdout or "")
+        m = re.search(r"pdftotext version ([\d.]+)", blob)
+        return {"pdftotext": m.group(1) if m else "unknown"}
+    except FileNotFoundError:
+        return {"pdftotext": None}
+
 
 def pdf_to_pages(path: Path, mode: str = "layout") -> list[str]:
     """Return one string per PDF page, extracted with pdftotext (-layout/-raw)."""
@@ -484,6 +508,7 @@ def write_outputs(all_chunks: list[Chunk], docs: list[dict], report: dict[str, d
         by_doc[c.doc_id] = by_doc.get(c.doc_id, 0) + 1
 
     stats = {
+        "extractor": extractor_version(),
         "documents": {
             d["doc_id"]: {
                 "file": d["file"], "title": d["title"], "type": d["doc_type"],

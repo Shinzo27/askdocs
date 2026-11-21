@@ -108,9 +108,11 @@ Short ADRs. Each records the option that was rejected, because that is the part 
 - a front-matter bound on TOC detection re-admitted the 1961 Act's trailing index (+76 chunks of junk);
 - schedules defaulting to the preceding section made every deduction table cite "Section 536 — Repeal and savings", fixed by emitting `SCHEDULE I`…`XVI` as their own sections.
 
-The four original documents now have an asserted chunk count (3,868 / 578 / 863 / 1,317), so any of these regressions fails a test instead of quietly shrinking the corpus.
+The four original documents now have an asserted chunk count (3,852 / 579 / 889 / 1,317), so any of these regressions fails a test instead of quietly shrinking the corpus.
 
-**Honest residual.** 27 of 536 sections in the 2025 Act match neither header signal; they stay attached to the preceding section, are reported as `sections_unparsed`, and are excluded from the golden set. Fixing them means font-level extraction (bold spans), which is a Week 2 problem at the earliest — a section count that is 95 % right and honestly reported beats a parser that lies.
+**Fourth bug, found on a different machine (2026-11-22).** The same PDFs, the same parser, a newer poppler — and 80C disappeared. poppler 26.11.0 lifts the amendment footnote digit onto its own line, so the header reads `[80C.` where the pattern expected `4[80C.`; 279 sections of the 1961 Act lost their anchor and were absorbed by the section above them. Two lessons, both now encoded: the extractor is part of the corpus provenance (`stats.json` records the version, `doctor.py` compares it to the pin and warns instead of silently failing a sound corpus), and "the parser is unchanged" is not the same claim as "the output is unchanged". Recovery raised the 1961 count from 705 to 768 section keys — the pins moved *up*.
+
+**Honest residual.** 23 of 536 sections in the 2025 Act match neither header signal; they stay attached to the preceding section, are reported as `sections_unparsed`, and are excluded from the golden set. Fixing them means font-level extraction (bold spans), which is a Week 2 problem at the earliest — a section count that is 95 % right and honestly reported beats a parser that lies.
 
 ---
 

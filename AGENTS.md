@@ -24,19 +24,19 @@ cd askdocs
 python -m venv .venv
 . .venv/bin/activate            # Windows PowerShell: .\.venv\Scripts\Activate.ps1
 python scripts/fetch_corpus.py  # re-downloads the 6 documents, hash-verified
-python scripts/ingest.py        # 11,080 chunks -> data/processed/
+python scripts/ingest.py        # 11,069 chunks -> data/processed/
 python scripts/doctor.py        # must print READY before you trust anything
 ```
 
 `data/raw/` and `data/processed/` are gitignored on purpose: 20 MB of government PDFs plus a 9 MB chunk file are regenerable, and the FAQ mirror is not ours to redistribute. Never commit them, never "fix" a failing check by editing a recorded hash.
 
-**Handoff was tested on a clean clone** (2026-11-21): clone → `fetch_corpus.py` → `ingest.py` → `doctor.py` = READY. Expect **9,763 chunks and two warnings** on that path (the CBDT FAQ CSV needs a manual download), and a different `corpus_hash` than a full-corpus run — which is why eval reports quote the hash. Fetch 5 documents + the FAQ manually and you get the full 11,080.
+**Handoff was tested on a clean clone** (2026-11-22): clone → `fetch_corpus.py` → `ingest.py` → `doctor.py` = READY. Expect **9,752 chunks and two warnings** on that path (the CBDT FAQ CSV needs a manual download), and a different `corpus_hash` than a full-corpus run — which is why eval reports quote the hash. Fetch 5 documents + the FAQ manually and you get the full **11,069**. Counts move by a few chunks between pdftotext builds: `doctor.py` warns when `stats.json`'s recorded extractor differs from the pinned version instead of failing a sound corpus.
 
 ## Invariants — do not break these
 
 | Invariant | Why | Enforced by |
 |---|---|---|
-| Per-document chunk counts stay at the pinned values (1,779 / 2,675 / 3,868 / 578 / 863 / 1,317) | Two parser "improvements" silently dropped 28 chunks and 23 sections | `scripts/doctor.py` |
+| Per-document chunk counts stay at the pinned values (1,762 / 2,670 / 3,852 / 579 / 889 / 1,317 for pdftotext 26.11.0) | Two parser "improvements" silently dropped 28 chunks and 23 sections; a third extractor change hid every Finance-Act-amended section behind a bare `[` | `scripts/doctor.py` |
 | A citation is `(doc_id, section)`, with page as a hint | Pages drift between printings; sections are the legal address | chunk schema |
 | Every chunk carries `vintage` + `applies_to_ay` | The 1961 Act still governs tax years before 1 Apr 2026; the 2025 Act governs after | `data/manifest.json` |
 | Refuse rather than guess | A wrong answer with a confident citation is the worst product behaviour in tax | `docs/EVAL.md` metrics |

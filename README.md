@@ -27,7 +27,7 @@ India's Income-tax Act, 1961 was replaced by the **Income-tax Act, 2025**, in fo
 
 | Layer | State |
 |---|---|
-| **Corpus + ingestion** | ✅ Done — 6 official documents → 11,080 section-tagged chunks, both Acts included |
+| **Corpus + ingestion** | ✅ Done — 6 official documents → 11,069 section-tagged chunks, both Acts included |
 | **Reproducibility** | ✅ Done — `fetch_corpus.py` (hash-verified, Wayback fallback), `doctor.py`, `AGENTS.md`, persisted design system |
 | **Standards** | ✅ Defined — ECC for code review, UI UX Pro Max for UI; gates in `docs/STANDARDS.md` |
 | **Retrieval (hybrid + rerank)** | 🚧 Week 1 |
@@ -42,15 +42,15 @@ Full four-week plan, with exit criteria per week: **[docs/PLAN.md](docs/PLAN.md)
 
 | Document | Publisher | Vintage | Applies to | Pages | Sections | Chunks |
 |---|---|---|---|---|---|---|
-| **Income-tax Act, 2025** | Govt. of India — Act No. 30 of 2025 | as amended by **Finance Act, 2026** | Tax Year 2026-27 onwards | 687 | 509 of 536 + 16 schedules | 1,779 |
-| **Income-tax Rules, 2026** | CBDT, Notification 22/2026 | notified 20 Mar 2026 | Tax Year 2026-27 onwards | 977 | 333 of 333 | 2,675 |
-| Income-tax Act, 1961 | Govt. of India | consolidated to **FA 2021** | AY 2026-27 and earlier | 956 | 705 | 3,868 |
-| CGST Act, 2017 | CBIC | as on 01.08.2021 | GST — ongoing | — | 175 | 578 |
-| CGST Rules, 2017 | CBIC | as on 30.12.2017 | GST — ongoing | — | 169 | 863 |
+| **Income-tax Act, 2025** | Govt. of India — Act No. 30 of 2025 | as amended by **Finance Act, 2026** | Tax Year 2026-27 onwards | 687 | 513 of 536 + 16 schedules | 1,762 |
+| **Income-tax Rules, 2026** | CBDT, Notification 22/2026 | notified 20 Mar 2026 | Tax Year 2026-27 onwards | 977 | 327 of 333 | 2,670 |
+| Income-tax Act, 1961 | Govt. of India | consolidated to **FA 2021** | AY 2026-27 and earlier | 956 | 768 | 3,852 |
+| CGST Act, 2017 | CBIC | as on 01.08.2021 | GST — ongoing | — | 168 | 579 |
+| CGST Rules, 2017 | CBIC | as on 30.12.2017 | GST — ongoing | — | 176 | 889 |
 | CBDT taxpayer FAQs | Income Tax Dept | undated | eval only | — | — | 1,317 |
-| **Total** | | | | | **1,907 pairs** | **11,080** |
+| **Total** | | | | | **1,968 pairs** | **11,069** |
 
-**8.72 M characters**, median chunk 891 chars, hard cap 1,344. Source URLs, retrieval route, HTTP status, byte counts and SHA-256 prefixes for every document are in [`data/sources.json`](data/sources.json); the parsing decisions are in [`data/README.md`](data/README.md).
+**8.69 M characters**, median chunk 877 chars, hard cap 1,343. Source URLs, retrieval route, HTTP status, byte counts and SHA-256 prefixes for every document are in [`data/sources.json`](data/sources.json); the parsing decisions are in [`data/README.md`](data/README.md). Counts are the output of pdftotext 26.11.0 — the extractor version is recorded in `data/processed/stats.json` and checked by `doctor.py`, because a different poppler build lays the same bytes out differently.
 
 Both Acts are in the corpus on purpose. The 2025 Act governs income from 1 April 2026; the 1961 Act still governs every tax year that began before it — returns, assessments, appeals and TDS corrections continue under it (s. 536 savings). A useful assistant must retrieve from both and say which one applies, which is why `applies_to_ay` is per-document metadata rather than a prompt string.
 
@@ -109,7 +109,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
 python scripts/fetch_corpus.py   # re-acquires the 6 documents, hash-verified
-python scripts/ingest.py         # -> data/processed/chunks.jsonl (11,080 chunks)
+python scripts/ingest.py         # -> data/processed/chunks.jsonl (11,069 chunks)
 python scripts/doctor.py         # environment + corpus integrity; must print READY
 ```
 
@@ -173,7 +173,7 @@ Thresholds, question distribution and the CI gate are specified in **[docs/EVAL.
 
 | Week | Theme | Ships |
 |---|---|---|
-| **1** | Ground truth first | Corpus complete (11,080 chunks, both Acts) → pgvector schema, hybrid retrieval + rerank, retrieval eval, **app shell with tokens applied** |
+| **1** | Ground truth first | Corpus complete (11,069 chunks, both Acts) → pgvector schema, hybrid retrieval + rerank, retrieval eval, **app shell with tokens applied** |
 | **2** | Answer generation | Grounded prompting, citation validation, refusal path, SSE API, **chat UI with all five states** |
 | **3** | Product surface | Citation viewer with PDF page jump, corpus browser, history, feedback, eval dashboard, committed screenshots |
 | **4** | Harden and ship | Deploy, load test, axe 0 violations / Lighthouse ≥ 95, README with measured numbers, 90-second demo |

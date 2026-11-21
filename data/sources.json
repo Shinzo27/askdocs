@@ -1,6 +1,6 @@
 {
-  "verified_on": "2026-11-21",
-  "notes": "Every entry below was fetched from this machine; bytes and page counts are measured, not assumed. Two documents were fetched from Wayback snapshots of the official pages because incometaxindia.gov.in returns 403 to this network - snapshot timestamps are recorded per document.",
+  "verified_on": "2026-11-22",
+  "notes": "Every entry below was fetched from this machine; bytes and page counts are measured, not assumed. Two documents were fetched from Wayback snapshots of the official pages because incometaxindia.gov.in returns 403 to this network - snapshot timestamps are recorded per document. Chunk and section counts are the output of the pdftotext version in `extractor`: a different poppler build lays the same bytes out differently and shifts counts by a few without changing the text.",
   "documents": [
     {
       "doc_id": "it-act-2025",
@@ -19,9 +19,9 @@
       "applies_to_ay": "Tax Year 2026-27 onwards",
       "license": "Government work - reproduce with attribution",
       "sha256_16": "d54a0ed6a91673d1",
-      "ingested_chunks": 1779,
-      "distinct_sections": 525,
-      "sections_unparsed": 11,
+      "ingested_chunks": 1762,
+      "distinct_sections": 529,
+      "sections_unparsed": 23,
       "notes": "536 sections, 23 chapters, 16 schedules (schedules emitted as their own sections). Repeals the 1961 Act; s.536 carries the savings."
     },
     {
@@ -41,9 +41,9 @@
       "applies_to_ay": "Tax Year 2026-27 onwards",
       "license": "Government work - reproduce with attribution",
       "sha256_16": "f565e0f5ff3bf8f7",
-      "ingested_chunks": 2675,
-      "distinct_sections": 333,
-      "sections_unparsed": 0,
+      "ingested_chunks": 2670,
+      "distinct_sections": 327,
+      "sections_unparsed": 6,
       "notes": "333 rules, 190 forms; replaces the Income-tax Rules, 1962."
     },
     {
@@ -58,8 +58,8 @@
       "pages": 956,
       "vintage": "consolidated up to Finance Act, 2021",
       "license": "Government work - reproduce with attribution",
-      "ingested_chunks": 3868,
-      "distinct_sections": 705
+      "ingested_chunks": 3852,
+      "distinct_sections": 768
     },
     {
       "doc_id": "cgst-act-2017",
@@ -72,8 +72,8 @@
       "bytes": 1888392,
       "vintage": "as on 01.08.2021",
       "license": "Government work - reproduce with attribution",
-      "ingested_chunks": 578,
-      "distinct_sections": 175
+      "ingested_chunks": 579,
+      "distinct_sections": 168
     },
     {
       "doc_id": "cgst-rules-2017",
@@ -86,8 +86,8 @@
       "bytes": 4045447,
       "vintage": "as on 30.12.2017 (base rules)",
       "license": "Government work - reproduce with attribution",
-      "ingested_chunks": 863,
-      "distinct_sections": 169
+      "ingested_chunks": 889,
+      "distinct_sections": 176
     },
     {
       "doc_id": "faq-cbdt",
@@ -139,5 +139,8 @@
       "url_hint": "https://prsindia.org/files/bills_acts/bills_parliament/2025/Bill_as_passed_by_LS_Income_Tax_(No.2)_Bill.pdf",
       "status": "reachable (7.8 MB, 593 pp) - not ingested to avoid duplicate-section conflicts"
     }
-  ]
+  ],
+  "extractor": {
+    "pdftotext": "26.11.0"
+  }
 }
