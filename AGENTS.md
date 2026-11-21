@@ -11,7 +11,7 @@ Any agent (Claude Code, Codex, Cursor, OpenCode, Hermes, a human in a text edito
 1. `AGENTS.md` (this file) — invariants and commands.
 2. `docs/PLAN.md` — what week we are in and what "done" means for it.
 3. `docs/ARCHITECTURE.md` — request lifecycle, data model, grounding contract.
-4. `docs/STANDARDS.md` — the two external skill sets that define code and UI quality. **Required before writing code or UI.**
+4. `docs/STANDARDS.md` — the two external skill sets that define code and UI quality (**ECC** `github.com/affaan-m/ECC` for code review, API design, security, testing; **UI UX Pro Max** `github.com/nextlevelbuilder/ui-ux-pro-max-skill` for design, accessibility and responsive layout). **Required before writing code or UI.** The committed design contract is `design-system/askdocs/MASTER.md`.
 5. `docs/API.md`, `docs/EVAL.md`, `docs/DECISIONS.md` when touching those areas.
 6. `data/README.md` — how the corpus was built and what is honestly missing.
 
