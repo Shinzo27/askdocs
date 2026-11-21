@@ -19,6 +19,7 @@ Layer tags used below: `[UI]` `[API]` `[RAG]` `[DB]` `[DATA]` `[EVAL]` `[INFRA]`
 6. `README.md` shows measured numbers, not adjectives.
 7. Every merge passes the **ECC** code gate and the **UI UX Pro Max** design checklist (`docs/STANDARDS.md`) — a change that passes one and fails the other is not done.
 8. A fresh machine + a different agent can rebuild the corpus with `fetch_corpus.py` → `ingest.py` → `doctor.py` and get the same `corpus_hash`.
+9. All six UI surfaces ship with their empty, loading, error and refusal states, and screenshots of them are committed in `docs/screenshots/` — the project has to be showable, not just decidable.
 
 ---
 
@@ -31,7 +32,44 @@ Layer tags used below: `[UI]` `[API]` `[RAG]` `[DB]` `[DATA]` `[EVAL]` `[INFRA]`
 | **3** | 7–13 Dec | Product surface | Citation viewer, history, feedback, eval dashboard, rate limiting |
 | **4** | 14–20 Dec | Harden and ship | Deployed, load-tested, CI-gated, documented with real numbers |
 
-Retrieval before generation is deliberate: no prompt engineering survives a bad retriever, and every later number depends on the corpus being right.
+Retrieval before generation is deliberate: no prompt engineering survives a bad retriever, and every later number depends on the corpus being right. **UI is the exception to that order**: the app shell and its tokens land in Week 1, because a screen you can click is how the project gets shown, and because building it against fixture data early keeps the design honest.
+
+---
+
+## UI workstream — planned, not a by-product
+
+Six surfaces, each with its own states, acceptance criteria and showcase artefact. The design contract is `design-system/askdocs/MASTER.md`; this table is the delivery plan for it.
+
+| Surface | Route | Built | States that must be designed | Acceptance criteria |
+|---|---|---|---|---|
+| **App shell** | global layout | **W1** | — | Tailwind 4 wired to `design-system/askdocs/tokens.json`; EB Garamond + Lato + mono loaded with `font-display: swap`; nav, skip-link, route tree; no flash of unstyled text |
+| **Ask** | `/` | **W2** | empty, streaming, complete, refused, error | one `aria-live="polite"` answer region; zero layout shift while streaming; `Stop` cancels a stream; refusal rendered as a distinct state, not an error |
+| **Evidence panel** | pane ≥1024 / drawer ≥768 / sheet <768 | **W3** | loading, found, section-missing | header order `doc · section · chapter · page · vintage`; `Escape` returns focus to the invoking chip; 68ch statute measure; "open in PDF" deep link |
+| **Corpus browser** | `/corpus` | **W3** | list, empty, error | counts come from `GET /corpus/stats`, never hardcoded; vintage shown per document; sections searchable |
+| **History + feedback** | `/history` | **W3** | empty, list, deleted, feedback-sent | server session cookie (no login in v1); read-only share link; verdict tags recorded |
+| **About / disclaimer** | `/about` | **W4** | — | "informational only, not legal advice"; corpus vintage and coverage gaps stated; link to the eval report |
+
+Every surface ships with **empty, loading, error and (where applicable) refusal** states. A happy-path-only screenshot is not a deliverable — the refusal state is the product's central honest behaviour, so it gets designed first, not last.
+
+### UI non-negotiables (from `MASTER.md`, enforced at review)
+
+1. Citation chip is a real `<button>` with `aria-label="Source 1: Section 80C, Income-tax Act, 1961, page 330"` and a ≥44×44 px hit area.
+2. Refusal uses a muted surface + accent rule — **never** destructive red. Red means something broke.
+3. The scope banner (which Act, which tax year) is persistent and non-dismissible; mixed-vintage answers repeat it in the answer header.
+4. Streaming preserves scroll position and text selection; `prefers-reduced-motion` disables caret pulse, smooth scroll and sheet slide.
+5. Responsive at 375 / 768 / 1024 / 1440, 200 % zoom and large-text reflow; no horizontal scroll.
+6. SVG icons only (Lucide), one family, 1.5 px stroke — no emoji as icons.
+
+### How the UI is showcased
+
+| Artefact | Produced | Lives |
+|---|---|---|
+| Screenshots: ask, evidence panel, refusal, corpus browser, mobile sheet | W2 + W3, refreshed W4 | [`docs/screenshots/`](screenshots/README.md) |
+| 90-second recording: ask → open citation → verify in PDF → refusal | W4 | README + résumé + portfolio card |
+| Live URL from a clean browser profile | W4 | README badge, résumé link |
+| a11y + performance numbers (axe violations 0, Lighthouse ≥ 95) | W4 | README table |
+
+Screenshots are captured from the running app, not from a mock — a design preview is labelled as one. The recording is scripted in `docs/demo-script.md` (W4) so it can be re-shot after any change.
 
 ---
 
@@ -44,9 +82,10 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 - `[DB]` Alembic schema: `documents`, `chunks` (`vector(384)` + generated `tsvector` + GIN), `conversations`, `messages`, `citations`, `query_log`; loader that streams `chunks.jsonl` into Postgres.
 - `[RAG]` Hybrid retrieval: dense top-50 ∥ full-text top-50 → **Reciprocal Rank Fusion** → cross-encoder rerank → section-level dedupe → top-6. `GET /api/v1/search?q=` returns scored passages with section, chapter, page, vintage and `?debug=1` score breakdown.
 - `[EVAL]` `eval/retrieval_eval.py` over a 25-question retrieval subset drawn from **both** Acts; report **recall@10, MRR, section hit rate** for dense-only vs BM25-only vs hybrid+rerank.
+- `[UI]` **App shell** — Next.js 16 route tree (`/`, `/corpus`, `/history`, `/about`), Tailwind 4 theme generated from `design-system/askdocs/tokens.json`, EB Garamond + Lato + mono with `font-display: swap`, nav + skip-link, and an empty state per route. Fixture JSON only: no API calls yet, so the shell is reviewable before the backend exists.
 - `[INFRA]` `docker compose up` (api, db, ollama), `Makefile` targets, pytest skeleton, pre-commit hooks, and a regression test that asserts the four original documents keep their exact chunk counts (3,868 / 578 / 863 / 1,317).
 
-**Exit criteria:** `docker compose up` + one curl returns citations with section, vintage and page; hybrid+rerank beats dense-only on section hit rate; recall@10 ≥ 0.85; the comparison table is committed in `docs/eval/retrieval-w1.md`; `python scripts/doctor.py` prints READY on a clean checkout after `fetch_corpus.py` + `ingest.py`; the retrieval code passes an `api-design` + `postgres-patterns` review before merge.
+**Exit criteria:** `docker compose up` + one curl returns citations with section, vintage and page; hybrid+rerank beats dense-only on section hit rate; recall@10 ≥ 0.85; the comparison table is committed in `docs/eval/retrieval-w1.md`; **the app shell runs at `localhost:3000` with tokens applied and an empty state on every route**; `python scripts/doctor.py` prints READY on a clean checkout after `fetch_corpus.py` + `ingest.py`; the retrieval code passes an `api-design` + `postgres-patterns` review before merge.
 
 ---
 
@@ -57,7 +96,7 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 - `[RAG]` **Citation validator:** parse `[n]` → map to chunk → assert the section exists in the context → strip or reject unsupported claims; message carries `citation_valid` plus a reason.
 - `[API]` `POST /api/v1/ask` SSE stream: `retrieval` → `token`×n → `citation`×n → `usage` → `done` | `error`; request id on every event; client disconnect cancels generation server-side.
 - `[API]` `Generator` protocol with Ollama / OpenAI / Gemini adapters, per-adapter timeout, retry and price table (cost is computed, not claimed).
-- `[UI]` Next.js 16 chat shell: streamed message, inline `[n]` markers, collapsible source list, explicit refusal state, scope banner, `⌘/Ctrl+Enter` submit, light/dark tokens. **Governed by `design-system/askdocs/MASTER.md`** — citation chip, streamed-answer and refusal rules are specified there, and the pre-delivery checklist is the review gate. Deviations go in `design-system/askdocs/pages/ask.md`.
+- `[UI]` Next.js 16 chat shell: streamed message, inline `[n]` markers, collapsible source list, explicit refusal state, scope banner, `⌘/Ctrl+Enter` submit, light/dark tokens. **Governed by `design-system/askdocs/MASTER.md`** — citation chip, streamed-answer and refusal rules are specified there, and the pre-delivery checklist is the review gate. Deviations go in `design-system/askdocs/pages/ask.md`. Ships all five states (empty, streaming, complete, refused, error); first screenshot committed to `docs/screenshots/ask.png`.
 - `[EVAL]` First end-to-end 40-question run; publish `docs/eval/baseline-w2.json`.
 - `[INFRA]` CI: ruff + mypy + pytest + tsc + eslint + vitest on every PR.
 
@@ -69,6 +108,8 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 
 - `[UI]` **Citation viewer:** side panel with the exact section text, document, vintage, page; deep link `/s/[doc]/[section]?page=…`; "open in PDF" jumps to `#page=`. Panel behaviour (order of metadata, focus return, Escape, print) is specified in `design-system/askdocs/MASTER.md`.
 - `[UI]` Conversation history on a server-issued session cookie (no login in v1), rename/delete, read-only share link; full empty/loading/error states; `aria-live` for streaming; keyboard-navigable; AA contrast.
+- `[UI]` **Corpus browser** (`/corpus`): documents, vintages, coverage, section search — every number read from `GET /corpus/stats`, nothing hardcoded. This is the surface that states the honest gaps (`sections_unparsed`, missing circulars) instead of implying completeness.
+- `[UI]` Screenshots committed for the four product surfaces (ask, evidence, refusal, corpus) plus the mobile sheet at 375 px, in `docs/screenshots/`.
 - `[API]` Feedback endpoint (helpful / not + reason tags), aggregation endpoints `/api/v1/stats` and `/api/v1/evals/latest` so the eval numbers are visible in the product, not just in the repo.
 - `[RAG]` History-aware follow-ups (query condensation before retrieval), embedding + retrieval caching, token-bucket rate limit at 20 req/min/IP.
 - `[EVAL]` Prompt-variant comparison (3 variants, same golden set), failure taxonomy in `docs/eval/failures.md` — every miss classified as retrieval, grounding, or generation.
@@ -84,7 +125,7 @@ Retrieval before generation is deliberate: no prompt engineering survives a bad 
 - `[INFRA]` Load test 20 concurrent SSE streams: record p95 first-token and end-to-end, cold-start behaviour, and cost per query; fix the tail (connection pooling, statement timeouts).
 - `[EVAL]` Final 40-question report with per-question breakdown — **published including the failures**, plus the metric table in the README.
 - `[TEST]` Playwright e2e (ask → cite → feedback → history), ≥ 70 % coverage on the retrieval and citation modules, security pass via the ECC `security-review` skill: prompt injection through retrieved statute text, XSS in rendered answers, no provider key in the browser bundle.
-- `[UI]` Final design sign-off against the `ui-ux-pro-max` pre-delivery checklist in `design-system/askdocs/MASTER.md`: 375 / 768 / 1024 / 1440, 200 % zoom, keyboard-only pass, `prefers-reduced-motion`, light + dark contrast.
+- `[UI]` Final design sign-off against the `ui-ux-pro-max` pre-delivery checklist in `design-system/askdocs/MASTER.md`: 375 / 768 / 1024 / 1440, 200 % zoom, keyboard-only pass, `prefers-reduced-motion`, light + dark contrast. Publishes the numbers: **axe violations 0**, Lighthouse accessibility ≥ 95. Screenshots refreshed, 90-second demo recorded (script in `docs/demo-script.md`), GIF embedded in the README.
 - `[DOCS]` README numbers filled in, 90-second demo recording, final architecture diagram, ADRs updated with the thresholds actually chosen.
 
 **Exit criteria:** public URL works from a clean browser profile; CI green; README shows measured citation accuracy / latency / cost; demo recording exists.

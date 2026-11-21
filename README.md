@@ -32,7 +32,7 @@ India's Income-tax Act, 1961 was replaced by the **Income-tax Act, 2025**, in fo
 | **Standards** | ✅ Defined — ECC for code review, UI UX Pro Max for UI; gates in `docs/STANDARDS.md` |
 | **Retrieval (hybrid + rerank)** | 🚧 Week 1 |
 | **Grounded generation + streaming API** | 🚧 Week 2 |
-| **Chat UI, citation viewer, history** | 🚧 Week 2–3 |
+| **Chat UI, citation viewer, history** | 🚧 W1 app shell → W2 chat surface → W3 evidence panel, corpus browser, history |
 | **Eval harness (40-question golden set)** | 🚧 Week 1 (retrieval), Week 3 (end-to-end) |
 | **Deploy, CI, load test, docs with measured numbers** | 🚧 Week 4 |
 
@@ -173,10 +173,10 @@ Thresholds, question distribution and the CI gate are specified in **[docs/EVAL.
 
 | Week | Theme | Ships |
 |---|---|---|
-| **1** | Ground truth first | Corpus complete (11,080 chunks, both Acts) → pgvector schema, hybrid retrieval + rerank, retrieval eval |
-| **2** | Answer generation | Grounded prompting, citation validation, refusal path, SSE API, chat shell |
-| **3** | Product surface | Citation viewer with PDF page jump, conversation history, feedback loop, eval dashboard |
-| **4** | Harden and ship | CI/CD, deploy, load test, a11y pass, README with measured numbers, demo recording |
+| **1** | Ground truth first | Corpus complete (11,080 chunks, both Acts) → pgvector schema, hybrid retrieval + rerank, retrieval eval, **app shell with tokens applied** |
+| **2** | Answer generation | Grounded prompting, citation validation, refusal path, SSE API, **chat UI with all five states** |
+| **3** | Product surface | Citation viewer with PDF page jump, corpus browser, history, feedback, eval dashboard, committed screenshots |
+| **4** | Harden and ship | Deploy, load test, axe 0 violations / Lighthouse ≥ 95, README with measured numbers, 90-second demo |
 
 ---
 
