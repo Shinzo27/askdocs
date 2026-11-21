@@ -15,7 +15,10 @@
       "pdf_mode": "raw",
       "header_style": "above",
       "declared_sections": 536,
-      "notes": "536 sections, 23 chapters, 16 schedules. Repealed the 1961 Act from 01.04.2026; section 536 carries the savings."
+      "notes": "536 sections, 23 chapters, 16 schedules. Repealed the 1961 Act from 01.04.2026; section 536 carries the savings.",
+      "sha256_16": "d54a0ed6a91673d1",
+      "bytes": 3299341,
+      "wayback_url": "https://web.archive.org/web/20261114181853id_/https://www.incometaxindia.gov.in/documents/d/guest/income_tax_act_2025_as_amended_by_fa_act_2026-pdf"
     },
     {
       "file": "it_rules_2026.pdf",
@@ -31,7 +34,10 @@
       "pdf_mode": "raw",
       "header_style": "inline",
       "declared_sections": 333,
-      "notes": "333 rules, 190 forms. Replaces the Income-tax Rules, 1962. Rules are printed as '158. Application for allotment ...' - one long line, inline header."
+      "notes": "333 rules, 190 forms. Replaces the Income-tax Rules, 1962. Rules are printed as '158. Application for allotment ...' - one long line, inline header.",
+      "sha256_16": "f565e0f5ff3bf8f7",
+      "bytes": 10111559,
+      "wayback_url": "https://web.archive.org/web/20260412141007id_/https://www.incometaxindia.gov.in/documents/d/guest/en-notified-it-rules-2026-20-03-2026-pdf"
     },
     {
       "file": "it_act_thc.pdf",
@@ -45,7 +51,9 @@
       "license": "Government work - reproduce with attribution",
       "pdf_mode": "layout",
       "header_style": "inline",
-      "notes": "Still governs every tax year beginning before 01.04.2026 - returns, assessments, appeals."
+      "notes": "Still governs every tax year beginning before 01.04.2026 - returns, assessments, appeals.",
+      "sha256_16": "f008674f055d3002",
+      "bytes": 8812268
     },
     {
       "file": "cgst_act.pdf",
@@ -58,7 +66,9 @@
       "source_url": "https://cbic-gst.gov.in/pdf/CGST-Act-Updated-01082021.pdf",
       "license": "Government work - reproduce with attribution",
       "pdf_mode": "layout",
-      "header_style": "inline"
+      "header_style": "inline",
+      "sha256_16": "f7317f3ae40c2f41",
+      "bytes": 1888392
     },
     {
       "file": "cgst_rules.pdf",
@@ -71,7 +81,9 @@
       "source_url": "https://cbic-gst.gov.in/pdf/cgst-rules-30122017.pdf",
       "license": "Government work - reproduce with attribution",
       "pdf_mode": "layout",
-      "header_style": "inline"
+      "header_style": "inline",
+      "sha256_16": "2405bdc0fdf85351",
+      "bytes": 4045447
     },
     {
       "file": "tax_faqs.csv",
@@ -85,7 +97,11 @@
       "license": "NOT DECLARED - local eval/answer-shape use only, do not redistribute",
       "pdf_mode": null,
       "header_style": null,
-      "notes": "Eval and answer-shape reference. Never shipped to the app, never redistributed."
+      "notes": "Eval and answer-shape reference. Never shipped to the app, never redistributed.",
+      "sha256_16": "13a90ca581068b65",
+      "bytes": 760862,
+      "acquire": "manual",
+      "acquire_hint": "HuggingFace dataset page only (no stable file URL): open https://huggingface.co/datasets/msinankhan1/India_Tax_FAQs -> Files and versions -> download the CSV as data/raw/tax_faqs.csv. Eval-only: never shipped, and the dataset declares no licence."
     }
   ]
 }

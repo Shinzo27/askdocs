@@ -28,13 +28,27 @@ Both Acts are in the corpus on purpose. The 2025 Act governs income from 1 April
 
 A snapshot is not the live page: the Act text is the official consolidated text **as amended by Finance Act, 2026**, but a later amendment would not appear. Re-fetch before making freshness claims. PRS hosts the "as passed by Lok Sabha, 11.08.2025" copy — *not* used here, because it predates the Finance Act 2026 amendments.
 
+## Rebuilding the corpus on another machine
+
+`data/raw/` and `data/processed/` are gitignored: 20 MB of PDFs and a 9 MB chunk file are regenerable, and the FAQ mirror is not ours to redistribute. So a fresh clone has no corpus, and the bootstrap is three commands:
+
+```bash
+python scripts/fetch_corpus.py   # live URL first, Wayback snapshot as fallback, SHA-256 verified
+python scripts/ingest.py         # rebuild chunks.jsonl (deterministic: two runs are byte-identical)
+python scripts/doctor.py         # interpreter, poppler, per-document hashes, pinned chunk counts
+```
+
+`fetch_corpus.py` reads `data/manifest.json`, so it knows which route each document needs; it resumes truncated Wayback transfers with HTTP Range requests. One document cannot be automated: the **CBDT FAQ CSV** has no stable file URL — the manifest marks it `"acquire": "manual"` with a hint, and `doctor.py` treats its absence as a warning rather than a blocker, because it is eval-only and never shipped.
+
+`doctor.py` prints the `corpus_hash` — quote it in every eval report. Numbers from different corpora are not comparable.
+
 ## Adding a document
 
 1. Drop the PDF (or Q&A `.csv`) into `data/raw/`.
-2. Add one entry to `data/manifest.json`.
-3. `python scripts/ingest.py`
+2. Add one entry to `data/manifest.json` — `doc_id`, `title`, `doc_type`, `vintage`, `applies_to_ay`, `source_url`, `sha256_16`, and the two layout facts below.
+3. `python scripts/ingest.py`, then `python scripts/doctor.py`.
 
-A PDF that is **not** in the manifest is still ingested — with inferred metadata and a loud warning — so a drop never silently does nothing. `data/raw/` and `data/processed/` are gitignored: 20 MB of PDFs and a 9 MB chunk file do not belong in git.
+A PDF that is **not** in the manifest is still ingested — with inferred metadata and a loud warning — so a drop never silently does nothing. Auto-detection also picks the header style by counting distinct section numbers under each candidate; that is a starting point, not a substitute for the spot checks in the skill's verification checklist.
 
 ## Why the parser is layout-aware
 
