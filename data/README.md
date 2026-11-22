@@ -77,6 +77,8 @@ Also: the Act's 16 schedules follow section 536, so they are emitted as their ow
 
 **Honest gap:** 513 of 536 sections of the 2025 Act are anchored; sections whose headers match neither signal stay attached to the preceding section. The count is reported in `data/processed/stats.json` as `sections_unparsed`, and those sections are excluded from the golden set rather than guessed at.
 
+**Second honest gap — titles, not keys.** A handful of sections in the 1961 copy get a textual-amendment footnote as their title (`10`, `16`, `17`), because the footnote is printed in the header's shape (`16. Subs. by Act 21 of 2006, s. 3, ...`). The section *key* is still right, so citations resolve and pages are correct; what suffers is the title shown next to them, and for `16` the salary-deduction body stays attached to the section above. A verb+citation filter was tried and rejected: it fixed `10` and dislodged `16`'s real anchor, which is a net loss. The real fix is font-level extraction (bold spans), not another regex — recorded here so the next reader does not spend an afternoon rediscovering it.
+
 ## Chunk schema (`data/processed/chunks.jsonl`)
 
 ```json

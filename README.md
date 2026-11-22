@@ -30,10 +30,10 @@ India's Income-tax Act, 1961 was replaced by the **Income-tax Act, 2025**, in fo
 | **Corpus + ingestion** | ✅ Done — 6 official documents → 11,069 section-tagged chunks, both Acts included |
 | **Reproducibility** | ✅ Done — `fetch_corpus.py` (hash-verified, Wayback fallback), `doctor.py`, `AGENTS.md`, persisted design system |
 | **Standards** | ✅ Defined — ECC for code review, UI UX Pro Max for UI; gates in `docs/STANDARDS.md` |
-| **Retrieval (hybrid + rerank)** | 🚧 Week 1 |
+| **Retrieval (hybrid + rerank)** | ✅ Week 1 — Postgres + pgvector, IDF-weighted full-text, RRF, cross-encoder; **recall@10 0.89** vs 0.80 dense-only |
 | **Grounded generation + streaming API** | 🚧 Week 2 |
-| **Chat UI, citation viewer, history** | 🚧 W1 app shell → W2 chat surface → W3 evidence panel, corpus browser, history |
-| **Eval harness (40-question golden set)** | 🚧 Week 1 (retrieval), Week 3 (end-to-end) |
+| **Chat UI, citation viewer, history** | 🚧 W2 chat surface → W3 evidence panel, corpus browser, history. **App shell shipped in W1** (4 routes, tokens applied, empty states) |
+| **Eval harness (40-question golden set)** | 🚧 Week 1 retrieval half ✅ (`docs/eval/retrieval-w1.md`, failures classified); end-to-end scoring lands W3 |
 | **Deploy, CI, load test, docs with measured numbers** | 🚧 Week 4 |
 
 Full four-week plan, with exit criteria per week: **[docs/PLAN.md](docs/PLAN.md)**.
