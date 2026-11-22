@@ -47,6 +47,7 @@ class Row:
     expected: list[tuple[str, str]]
     rank: int | None = None  # rank of the first correct-section chunk (1-based)
     top1: tuple[str, str] | None = None  # section of the best selected passage
+    in_prompt: bool = False  # does the selected set (what the model sees) contain it?
 
 
 @dataclass(slots=True)
@@ -119,6 +120,7 @@ async def run_config(name: str, questions: list[dict], session, *,
                 rank = i
                 break
         top1 = (ranked[0].doc_id, ranked[0].section) if ranked else None
+        in_prompt = any((c.doc_id, c.section) in expected for c in ranked)
         config.rows.append(
             Row(
                 qid=question["id"],
@@ -126,6 +128,7 @@ async def run_config(name: str, questions: list[dict], session, *,
                 expected=expected,
                 rank=rank,
                 top1=top1,
+                in_prompt=in_prompt,
             )
         )
     return config
@@ -136,10 +139,14 @@ def summarise(config: Config) -> dict[str, float]:
     recall = sum(1 for r in config.rows if r.rank is not None) / n
     mrr = sum(1.0 / r.rank for r in config.rows if r.rank) / n
     hit1 = sum(1 for r in config.rows if r.top1 in r.expected) / n
+    prompt_hit = sum(1 for r in config.rows if r.in_prompt) / n
     return {
         "recall@10": round(recall, 4),
         "mrr@10": round(mrr, 4),
         "section_hit_rate@1": round(hit1, 4),
+        # What the generator actually gets: a correct section inside the sources
+        # that go into the prompt. This is the number the citation metric inherits.
+        "prompt_coverage": round(prompt_hit, 4),
         "p50_ms": round(statistics.median(config.ms), 1) if config.ms else 0.0,
         "p95_ms": round(sorted(config.ms)[int(len(config.ms) * 0.95) - 1], 1) if config.ms else 0.0,
     }
@@ -224,13 +231,14 @@ def render_markdown(rows: list[tuple[Config, dict[str, float]]], meta: dict[str,
         ),
         "- generation: none (retrieval only, zero LLM cost)",
         "",
-        "| Configuration | recall@10 | MRR@10 | section hit@1 | p50 ms | p95 ms |",
-        "|---|---|---|---|---|---|",
+        "| Configuration | recall@10 | MRR@10 | section hit@1 | prompt cover | p50 ms | p95 ms |",
+        "|---|---|---|---|---|---|---|",
     ]
     for config, metrics in rows:
         out.append(
             f"| {config.name} | {metrics['recall@10']:.2f} | {metrics['mrr@10']:.2f} | "
-            f"{metrics['section_hit_rate@1']:.2f} | {metrics['p50_ms']:.0f} | {metrics['p95_ms']:.0f} |"
+            f"{metrics['section_hit_rate@1']:.2f} | {metrics['prompt_coverage']:.2f} | "
+            f"{metrics['p50_ms']:.0f} | {metrics['p95_ms']:.0f} |"
         )
     misses = [
         (c.name, r) for c, _ in rows if c.name == "hybrid+rerank" for r in c.rows if r.rank is None

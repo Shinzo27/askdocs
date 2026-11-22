@@ -1,0 +1,145 @@
+# Status — where AskDocs actually is
+
+**Updated:** 2026-11-22, end of session. **Branch:** `main`, 25 commits (14 from this work), nothing pushed.
+**Corpus:** 11,069 chunks in `data/processed/`, 9,752 indexed (the eval-only CBDT FAQ is
+deliberately excluded), `corpus_hash f7683ce4b68b`.
+
+This file exists because the project got to a state that is easy to misread from the
+README alone: Week 1 is solid, Week 2 works, and the accuracy number that matters is not
+yet where it needs to be. Read this before the next session, then `docs/PLAN.md`.
+
+---
+
+## 1. What is verified
+
+| Area | State | Evidence |
+|---|---|---|
+| Corpus rebuild from scratch | ✅ | `fetch_corpus.py` → `ingest.py` → `doctor.py` = **READY**; all 6 documents hash-verified |
+| Retrieval (this machine) | ✅ | recall@10 **0.89** (gate 0.85), MRR 0.69 — `docs/eval/retrieval-w1.md` |
+| API surface | ✅ | `/search`, `/sections/{doc}/{section}`, `/corpus/stats`, `/ask`, `/healthz`, `/readyz` |
+| Streaming UI | ✅ *(browser-verified, echo generator)* | streams, chips with `aria-label`, chip opens section, Escape returns focus — `docs/screenshots/ask.png` |
+| Deterministic core | ✅ | 28 unit tests: citation validator, refusal gate, context budget, sessions, RRF, dedupe, doc scoping |
+| Lint / types | ✅ | ruff clean, `tsc --noEmit` clean |
+
+## 2. What is built but failing its gate
+
+End-to-end, 10 questions, qwen2.5:3b-instruct:
+
+```
+citation accuracy 0.50 (target 0.80)   fact recall 0.40 (target 0.80)
+refusal correctness 0.90 (target 0.90) must-not-say violations 0
+first token p95 19.0 s (target 1.5 s)  end-to-end p95 31.9 s (target 6 s)
+```
+
+Model comparison, all measured here (`docs/eval/latest.md`, README):
+
+| model | gen tok/s | prompt tok/s | first token p95 | citation acc | fact recall |
+|---|---|---|---|---|---|
+| 7B | 4.6 | 35 | ~70 s | not run to completion | — |
+| 3B | 6.1 | 55 | 19.0 s | 0.50 | 0.40 |
+| 1.5B | 9.4 | 49 | 12.1 s | 0.50 | 0.27 |
+
+## 3. The three findings that shaped the work
+
+1. **The corpus did not reproduce, and it was not the parser.** poppler 26.11.0 lifts the
+   amendment footnote digit onto its own line, so headers read `[80C.` instead of
+   `4[80C.` — 279 sections of the 1961 Act lost their anchor, including 80C/80CCD/80D/
+   44ADA. Fixed; extractor version is now recorded and checked. (commit `6e48e10`)
+2. **The CBDT FAQ in the index cost 0.11 recall.** FAQ text is question-shaped, so it
+   out-ranked statute for every natural question while carrying no section to cite — and
+   it is eval-only by licence. Excluding it took hybrid+rerank from 0.68 to 0.89. (`942d60b`)
+3. **The reranker improves recall but *reduces* what reaches the model.** New
+   `prompt_coverage` metric (does the correct section appear in the six sources the model
+   actually sees):
+
+   | config | recall@10 | prompt coverage |
+   |---|---|---|
+   | hybrid (RRF only) | 0.77 | **0.89** |
+   | hybrid+rerank | 0.89 | **0.83** |
+
+   Rerank lifts the candidate list from 0.77 to 0.89 and then drops the correct section
+   out of the six that reach the model 6 % more often than plain RRF would have. Whether
+   widening the prompt recovers that is **not yet measured** (see open questions).
+
+## 4. Open questions — the ones I could not close today
+
+Written down rather than guessed at; each one is a decision or an experiment for the
+next session.
+
+1. **Why does rerank hurt prompt coverage?** Measured, not explained. Hypotheses, in the
+   order I would test them:
+   - the cross-encoder (`ms-marco-MiniLM-L-6-v2`) is trained on web passages and may
+     prefer prose that *sounds* like an answer over statute that *is* the answer;
+   - our rerank input prefixes `Section — title — (document): text`, which I introduced
+     because it lifted hit@1 from 0.36 to 0.60 — it may also be inflating sections whose
+     titles echo the question (80CCE names "section 80C", which is exactly the q001 miss);
+   - section-level dedupe then keeps one chunk per section, so a demoted section loses
+     its only slot.
+2. **Widening the pool is untested — do not claim otherwise.** `RERANK_TOP_K=6` measures
+   0.83 prompt coverage across two runs (`16-55` four-config, `16-57` single-config, same
+   corpus and same questions). The `k=8` and `k=10` runs were interrupted before writing a
+   report, so there is **no result for either**. An earlier draft of this file said "8
+   measures 0.83 too" — that was comparing two k=6 runs and it was wrong. If widening
+   turns out not to help, the loss is ordering rather than truncation, which points at
+   hypothesis 2; if it does help, the fix is a bigger prompt and more latency.
+3. **Is the 0.50 citation ceiling retrieval or generation?** Both 3B and 1.5B score 0.50
+   with identical failure shapes, so it looks like retrieval. But it is not proven that a
+   perfect prompt would lift a 1.5B model to 0.80 — worth one run with the echo
+   generator (which cites everything it is given) as an upper bound on what the prompt
+   can support.
+4. **§80CCE instead of §80C, §129 instead of §80E.** The model cites a *related* section
+   rather than inventing one, which is a better failure than hallucination but still
+   wrong. Unclear whether to treat this as a retrieval fix (do not retrieve aggregates for
+   a provision query) or a prompt fix (cite the section the source header names).
+5. **Model strategy is undecided.** Local tops out at 0.50 / 12 s on this 8 GB M2. A
+   hosted adapter (OpenAI or Gemini) is written and **completely untested** — no key was
+   available. That is the only path to the stated latency target.
+6. **`AGENTS.md` is stale in two places** (line 6 still says 11,080 chunks; line 69 still
+   shows `apps/ (Week 1+)`). The file is protected — my writes timed out awaiting
+   approval — so it needs a manual edit or an explicit OK.
+
+## 5. How to resume
+
+```bash
+cd /Volumes/Work/projects/askdocs
+export PATH=/opt/homebrew/bin:$PATH        # git, pdftotext, ollama live here
+
+make doctor                 # corpus integrity; must print READY
+make up                     # Postgres + pgvector  (Docker Desktop must be running)
+make api                    # FastAPI on :8000 (reads .env)
+make web                    # Next.js on :3000
+ollama serve &              # only if you want real generation
+
+make test                   # 28 unit tests
+make eval-retrieval         # 25-question retrieval subset
+make eval-e2e               # full path against the running API
+```
+
+Model choice is configuration, not code:
+
+```bash
+GENERATOR_PROVIDER=ollama OLLAMA_MODEL=qwen2.5:3b-instruct make api
+GENERATOR_PROVIDER=echo   make api      # no model: exercises SSE + validation only
+GENERATOR_PROVIDER=openai OPENAI_API_KEY=... make api
+```
+
+## 6. What was left running when I stopped
+
+Everything is stopped except Docker Desktop and the Postgres container:
+
+| Service | State |
+|---|---|
+| Postgres (`askdocs-db`) | **running**, 9,752 chunks loaded |
+| FastAPI `:8000` | stopped |
+| Next.js `:3000` | stopped |
+| Ollama (`:11434`) | stopped; 7B + 3B + 1.5B pulled (7.6 GB on disk) |
+
+## 7. The next three things I would do
+
+1. **Close open question 1** with one experiment: rerank on raw passage text vs the
+   labelled prefix, measuring `prompt_coverage`. It is a 20-minute run and it decides
+   whether the prefix stays.
+2. **Then** per-section neighbour expansion (include the adjacent chunk of a selected
+   section when the budget allows) — the sub-clause problem behind q001/q002.
+3. **Then** Week 3's surfaces (corpus browser wired to `/corpus/stats`, history, eval
+   dashboard), which do not depend on the model question at all.

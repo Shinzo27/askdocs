@@ -6,6 +6,8 @@ Most "chat with your PDF" demos produce fluent prose. In tax law a fluent wrong 
 
 > Informational only, not legal advice. Every answer is stamped with the corpus vintage it was drawn from.
 
+**Where the project is right now:** [`docs/STATUS.md`](docs/STATUS.md) — what is verified, what is failing its gate, and the open questions, written for the next session rather than for a demo.
+
 ---
 
 ## The problem this project refuses to ignore

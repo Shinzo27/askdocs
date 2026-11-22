@@ -1,18 +1,11 @@
-## End-to-end run 2026-11-22 16:52 UTC
+## Retrieval run 2026-11-22 16:57 UTC
 
-- provider/model: **ollama/qwen2.5:1.5b-instruct** · prompt 31926134
-- corpus_hash: `f7683ce4b68b`
-- questions: 6 (6 with an expected section)
+- questions: **35** (full set)
+- corpus_hash: `f7683ce4b68b` · extractor 26.11.0
+- generation: none (retrieval only, zero LLM cost)
 
-| Metric | Value | Target | Status |
-|---|---|---|---|
-| Citation accuracy | 0.50 | ≥ 0.80 | ❌ |
-| Fact recall | 0.27 | ≥ 0.80 | ❌ |
-| Must-not-say violations | 0 | 0 | ✅ |
-| Refusal correctness | 0.92 | ≥ 0.90 | ✅ |
-| Over-refusals (in-corpus) | 1 | 0 | ❌ |
-| First token p95 | 12143 ms | ≤ 1500 ms | ❌ |
-| End-to-end p95 | 22119 ms | ≤ 6000 ms | ❌ |
-| Cost per query | ₹0.0 | ≤ ₹0.15 | ✅ |
+| Configuration | recall@10 | MRR@10 | section hit@1 | prompt cover | p50 ms | p95 ms |
+|---|---|---|---|---|---|---|
+| hybrid+rerank | 0.89 | 0.69 | 0.60 | 0.83 | 1342 | 1861 |
 
-**Citation misses:** q001 (got 80CCE), q002 (got none), q005 (got 129)
+**Misses (hybrid+rerank):** q011, q015, q018, q030
