@@ -38,6 +38,15 @@ class Settings(BaseSettings):
         default="cross-encoder/ms-marco-MiniLM-L-6-v2", alias="RERANK_MODEL"
     )
 
+    # --- generation -------------------------------------------------------
+    generator_provider: str = Field(default="ollama", alias="GENERATOR_PROVIDER")
+    ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
+    ollama_model: str = Field(default="qwen2.5:7b-instruct", alias="OLLAMA_MODEL")
+    openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
+    openai_model: str = Field(default="gpt-4o-mini", alias="OPENAI_MODEL")
+    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
+    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
+
     # --- retrieval --------------------------------------------------------
     dense_top_k: int = Field(default=50, alias="DENSE_TOP_K")
     lexical_top_k: int = Field(default=50, alias="LEXICAL_TOP_K")
@@ -50,6 +59,7 @@ class Settings(BaseSettings):
 
     # --- product ----------------------------------------------------------
     web_origin: str = Field(default="http://localhost:3000", alias="WEB_ORIGIN")
+    session_secret: str = Field(default="dev-only-change-me", alias="SESSION_SECRET")
     rate_limit_per_min: int = Field(default=20, alias="RATE_LIMIT_PER_MIN")
     debug_enabled: bool = Field(default=True, alias="DEBUG_ENABLED")
 
