@@ -72,7 +72,7 @@ class OllamaGenerator:
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
             "stream": True,
-            "options": {"temperature": 0.1, "seed": 42, "num_predict": 700},
+            "options": {"temperature": 0.0, "seed": 42, "num_predict": 400},
         }
         timeout = httpx.Timeout(connect=5.0, read=120.0, write=30.0, pool=5.0)
         async with httpx.AsyncClient(timeout=timeout) as client:

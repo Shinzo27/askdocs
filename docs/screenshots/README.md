@@ -6,7 +6,7 @@ Screenshots of the **running app**, not mock-ups. They exist so the project can 
 
 | File | Surface | Produced |
 |---|---|---|
-| `ask.png` | `/` answered question with inline `[n]` chips | Week 2 |
+| `ask.png` | `/` answered question with inline `[n]` chips — **captured with the `echo` generator** (no model installed meets the latency budget on this 8 GB box; see the README's Week 2 section) | Week 2 |
 | `ask-refused.png` | refusal state for an out-of-corpus question | Week 2 |
 | `evidence-panel.png` | citation panel: doc · section · chapter · page · vintage | Week 3 |
 | `corpus.png` | `/corpus` document + vintage + coverage table | Week 3 |

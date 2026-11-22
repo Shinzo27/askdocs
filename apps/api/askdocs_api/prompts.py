@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 PROMPT_DIR = Path(__file__).resolve().parent.parent / "prompts"
-GROUNDED = "grounded-v2"
+GROUNDED = "grounded-v3"
 REFUSAL = "refusal-v1"
 
 # Roughly 4 characters per token for English prose; the budget is enforced on

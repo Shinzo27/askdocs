@@ -110,7 +110,10 @@ export function AskConsole() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        buffer += decoder.decode(value, { stream: true });
+        // sse-starlette terminates lines with CRLF; normalise before splitting,
+        // otherwise "\r\n\r\n" never matches the frame separator and the UI
+        // renders nothing while the network tab shows a healthy 200.
+        buffer += (decoder.decode(value, { stream: true }) || "").replace(/\r\n/g, "\n");
 
         // SSE frames are separated by a blank line.
         let cut = buffer.indexOf("\n\n");
