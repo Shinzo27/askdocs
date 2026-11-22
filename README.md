@@ -31,12 +31,36 @@ India's Income-tax Act, 1961 was replaced by the **Income-tax Act, 2025**, in fo
 | **Reproducibility** | ✅ Done — `fetch_corpus.py` (hash-verified, Wayback fallback), `doctor.py`, `AGENTS.md`, persisted design system |
 | **Standards** | ✅ Defined — ECC for code review, UI UX Pro Max for UI; gates in `docs/STANDARDS.md` |
 | **Retrieval (hybrid + rerank)** | ✅ Week 1 — Postgres + pgvector, IDF-weighted full-text, RRF, cross-encoder; **recall@10 0.89** vs 0.80 dense-only |
-| **Grounded generation + streaming API** | 🚧 Week 2 |
-| **Chat UI, citation viewer, history** | 🚧 W2 chat surface → W3 evidence panel, corpus browser, history. **App shell shipped in W1** (4 routes, tokens applied, empty states) |
+| **Grounded generation + streaming API** | ✅ Built (W2) — `/ask` SSE, citation validation, refusal path, three provider adapters. **Accuracy gate missed on this machine**: 3B @ 0.50 citation accuracy, 7B @ 4.6 tok/s. See below. |
+| **Chat UI, citation viewer, history** | 🚧 Chat surface shipped (W2): streamed answer, inline `[n]` chips that open the section, refusal state, `Stop`. Evidence panel is inline for now; history lands W3 |
 | **Eval harness (40-question golden set)** | 🚧 Week 1 retrieval half ✅ (`docs/eval/retrieval-w1.md`, failures classified); end-to-end scoring lands W3 |
 | **Deploy, CI, load test, docs with measured numbers** | 🚧 Week 4 |
 
 Full four-week plan, with exit criteria per week: **[docs/PLAN.md](docs/PLAN.md)**.
+
+### Week 2, measured on this machine — the target is missed, and here is why
+
+The grounded path works end to end: the answer streams, every claim carries a
+marker, unknown markers fail validation, and an unanswerable question is refused
+with a reason instead of guessed at. What does not work here is the model.
+
+| | qwen2.5:7b-instruct (documented default) | qwen2.5:3b-instruct (demo) |
+|---|---|---|
+| generation | **4.6 tok/s** | 6.1 tok/s |
+| prompt processing | 35 tok/s | ~55 tok/s |
+| first token, 2.5 k-token context | ~70 s | ~19 s p95 |
+| citation accuracy (10 Q sample) | not run to completion | **0.50** |
+| fact recall | — | 0.40 |
+| refusal correctness | — | 0.90 |
+
+An 8 GB M2 with a 4 GB Docker VM cannot run a 7B model and a Postgres + pgvector
+stack at once; the measurements above are what that costs, taken rather than guessed.
+The gate (`citation accuracy ≥ 0.80`, `first token ≤ 1.5 s`) is **not met locally**.
+Report: [`docs/eval/latest.md`](docs/eval/latest.md). Two of the ten failures are
+retrieval, not generation — the §80C chunk retrieved for a tuition-fee question does
+not contain the tuition-fee sub-clause, and a house-property question cited §21 of the
+2025 Act where the 1961 Act's §24 applies. Those are fixable in the retriever; the
+latency is not fixable in software on this box.
 
 ### Corpus (measured, not estimated)
 
