@@ -16,6 +16,7 @@ Why each step exists (ADR-003):
 
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -106,6 +107,29 @@ def _scope_clause(doc_scope: list[str] | None, alias: str = "c") -> tuple[str, d
     if not doc_scope:
         return "", {}
     return f" AND {alias}.doc_id = ANY(:doc_scope)", {"doc_scope": doc_scope}
+
+
+
+# Which instrument a question is about, when it says so. Three of the four Week 1
+# misses were the right section number inside the wrong document: both Acts are in
+# one index and a question that does not name its vintage leaves the retriever to
+# guess. Reading the instrument out of the question is the cheapest half of that
+# fix and it is measurable.
+_ACT_1961_RE = re.compile(r"\b(1961|income[- ]tax act,?\s*1961)\b", re.IGNORECASE)
+_ACT_2025_RE = re.compile(r"\b(2025|income[- ]tax act,?\s*2025)\b", re.IGNORECASE)
+_GST_RE = re.compile(r"\b(cgst|gst|goods and services tax)\b", re.IGNORECASE)
+
+
+def infer_doc_scope(question: str) -> list[str] | None:
+    """Documents the question names, or None to search everything."""
+    scopes: list[str] = []
+    if _ACT_1961_RE.search(question):
+        scopes.append("it-act-1961")
+    if _ACT_2025_RE.search(question):
+        scopes.extend(["it-act-2025", "it-rules-2026"])
+    if _GST_RE.search(question):
+        scopes.extend(["cgst-act-2017", "cgst-rules-2017"])
+    return list(dict.fromkeys(scopes)) or None
 
 
 async def dense_search(
@@ -309,6 +333,8 @@ async def retrieve(
     """Full pipeline. `use_*` flags exist for the Week 1 ablation, not tuning."""
     settings = get_settings()
     top_k = top_k or settings.rerank_top_k
+    if doc_scope is None:
+        doc_scope = infer_doc_scope(query)
     started = time.perf_counter()
 
     dense = (

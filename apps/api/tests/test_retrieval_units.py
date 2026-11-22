@@ -9,6 +9,7 @@ from __future__ import annotations
 from askdocs_api.retrieval import (
     Candidate,
     dedupe_by_section,
+    infer_doc_scope,
     reciprocal_rank_fusion,
 )
 
@@ -75,3 +76,23 @@ def test_label_is_the_citation_address() -> None:
     assert "p. 330" in label
     assert label.rstrip().endswith(")")
     assert label.index("Section") < label.index("Chapter") < label.index("p. 330")
+
+
+def test_scope_inferred_from_the_act_a_question_names() -> None:
+    """Asking about the 1961 Act must not retrieve 2025 chunks with the same number."""
+    assert infer_doc_scope("Under the Income-tax Act, 1961, what is section 80C?") == [
+        "it-act-1961"
+    ]
+    assert infer_doc_scope("What does the Income-tax Act, 2025 say about tax year?") == [
+        "it-act-2025",
+        "it-rules-2026",
+    ]
+    assert infer_doc_scope("What is the GST registration threshold?") == [
+        "cgst-act-2017",
+        "cgst-rules-2017",
+    ]
+
+
+def test_scope_is_none_when_the_question_names_no_instrument() -> None:
+    """Unscoped search is the default; both Acts stay reachable."""
+    assert infer_doc_scope("How much can I deduct for tuition fees?") is None
