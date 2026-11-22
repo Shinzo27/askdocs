@@ -44,23 +44,32 @@ The grounded path works end to end: the answer streams, every claim carries a
 marker, unknown markers fail validation, and an unanswerable question is refused
 with a reason instead of guessed at. What does not work here is the model.
 
-| | qwen2.5:7b-instruct (documented default) | qwen2.5:3b-instruct (demo) |
-|---|---|---|
-| generation | **4.6 tok/s** | 6.1 tok/s |
-| prompt processing | 35 tok/s | ~55 tok/s |
-| first token, 2.5 k-token context | ~70 s | ~19 s p95 |
-| citation accuracy (10 Q sample) | not run to completion | **0.50** |
-| fact recall | — | 0.40 |
-| refusal correctness | — | 0.90 |
+| | qwen2.5:7b-instruct (documented default) | qwen2.5:3b-instruct (demo) | qwen2.5:1.5b-instruct |
+|---|---|---|---|
+| generation | **4.6 tok/s** | 6.1 tok/s | 9.4 tok/s |
+| prompt processing | 35 tok/s | ~55 tok/s | 49 tok/s |
+| first token p95, 2.5 k-token context | ~70 s (est.) | 19.0 s | 12.1 s |
+| end-to-end p95 | — | 31.9 s | 22.1 s |
+| citation accuracy | not run to completion | **0.50** | **0.50** |
+| fact recall | — | 0.40 | 0.27 |
+| refusal correctness | — | 0.90 | 0.92 |
+
+Two conclusions, both measured rather than argued:
+
+1. **Latency cannot be fixed by model size on this box.** Generation speed improves 2×
+   from 7B to 1.5B, but first token only halves — because the cost is *prompt
+   processing* of a 2.5 k-token source block, not generation. No qwen2.5 size reaches a
+   1.5 s first token here.
+2. **Citation accuracy is not a model problem.** It sits at 0.50 for both the 3B and
+   the 1.5B, and the misses are the same kind: §80CCE retrieved instead of §80C,
+   §129 instead of §80E. Weakening the model did not weaken the citations, because
+   retrieval is the binding constraint — which is also why the next fix is the
+   retriever's chunk granularity, not a bigger model.
 
 An 8 GB M2 with a 4 GB Docker VM cannot run a 7B model and a Postgres + pgvector
-stack at once; the measurements above are what that costs, taken rather than guessed.
-The gate (`citation accuracy ≥ 0.80`, `first token ≤ 1.5 s`) is **not met locally**.
-Report: [`docs/eval/latest.md`](docs/eval/latest.md). Two of the ten failures are
-retrieval, not generation — the §80C chunk retrieved for a tuition-fee question does
-not contain the tuition-fee sub-clause, and a house-property question cited §21 of the
-2025 Act where the 1961 Act's §24 applies. Those are fixable in the retriever; the
-latency is not fixable in software on this box.
+stack at once. The gate (`citation accuracy ≥ 0.80`, `first token ≤ 1.5 s`) is **not
+met locally**; reports: [`docs/eval/latest.md`](docs/eval/latest.md) and
+[`docs/eval/failures.md`](docs/eval/failures.md).
 
 ### Corpus (measured, not estimated)
 

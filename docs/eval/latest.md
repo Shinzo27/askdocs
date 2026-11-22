@@ -1,14 +1,18 @@
-## Retrieval run 2026-11-22 16:46 UTC
+## End-to-end run 2026-11-22 16:52 UTC
 
-- questions: **35** (full set)
-- corpus_hash: `f7683ce4b68b` · extractor 26.11.0
-- generation: none (retrieval only, zero LLM cost)
+- provider/model: **ollama/qwen2.5:1.5b-instruct** · prompt 31926134
+- corpus_hash: `f7683ce4b68b`
+- questions: 6 (6 with an expected section)
 
-| Configuration | recall@10 | MRR@10 | section hit@1 | p50 ms | p95 ms |
-|---|---|---|---|---|---|
-| dense | 0.80 | 0.61 | 0.51 | 29 | 46 |
-| lexical | 0.54 | 0.33 | 0.23 | 11 | 42 |
-| hybrid | 0.77 | 0.58 | 0.51 | 30 | 51 |
-| hybrid+rerank | 0.89 | 0.69 | 0.60 | 1591 | 3111 |
+| Metric | Value | Target | Status |
+|---|---|---|---|
+| Citation accuracy | 0.50 | ≥ 0.80 | ❌ |
+| Fact recall | 0.27 | ≥ 0.80 | ❌ |
+| Must-not-say violations | 0 | 0 | ✅ |
+| Refusal correctness | 0.92 | ≥ 0.90 | ✅ |
+| Over-refusals (in-corpus) | 1 | 0 | ❌ |
+| First token p95 | 12143 ms | ≤ 1500 ms | ❌ |
+| End-to-end p95 | 22119 ms | ≤ 6000 ms | ❌ |
+| Cost per query | ₹0.0 | ≤ ₹0.15 | ✅ |
 
-**Misses (hybrid+rerank):** q011, q015, q018, q030
+**Citation misses:** q001 (got 80CCE), q002 (got none), q005 (got 129)

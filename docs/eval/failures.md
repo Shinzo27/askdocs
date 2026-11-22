@@ -58,15 +58,24 @@ q033.
 No question failed for **grounding** or **generation**: there is no generator in Week 1,
 by design. That column starts at Week 2.
 
-## Known weaknesses before Week 2
+## Known weaknesses before Week 3
 
-- **Rerank latency**: ~1.8 s p50 for 30 candidates on CPU, against a 250 ms budget.
-  The accuracy is real, so the fix is throughput (ONNX/quantised encoder, batching,
-  or a cache), not removing the stage. A 20-candidate pool was measured: recall@10
-  0.86, p50 957 ms — the documented fallback if latency has to win, at a 3-point
-  accuracy cost. Tracked in `docs/BACKLOG.md`.
-- **Only 35 of 40 questions are scorable here**: the 5 refusal traps have no
-  expected section, and refusal correctness needs a generator, so they score from
-  Week 2.
-- **q011/q015/q018/q030 are vocabulary gaps**, not index bugs: they are the honest
-  argument for query rewriting (Week 3) rather than another retriever tweak.
+- **The 0.50 citation ceiling is retrieval, not the model.** Measured across three
+  sizes (7B / 3B / 1.5B): citation accuracy stays at 0.50 for both models that
+  completed a run, with the same failure shapes (§80CCE instead of §80C, §129
+  instead of §80E, nothing for q002). Generation speed improved 2× with the smaller
+  model; citations did not move. The binding constraint is that one chunk per section
+  is selected, so the sub-clause that answers the question is often not in the prompt.
+  The next change is per-section neighbour expansion or a larger per-section cap —
+  measured the same way, in `retrieval_eval.py` before it reaches the generator.
+- **Latency on this machine cannot be fixed by model size.** First token is dominated
+  by prompt processing (35–55 tok/s against a 2.5 k-token source block), so the 1.5 s
+  budget is out of reach for any local qwen2.5 size. A hosted adapter or a GPU box is
+  the only path to the stated target; both are config changes, which is why the
+  adapters exist.
+- **The 3B and 1.5B sometimes refuse with the answer in context** ("I can't verify
+  this" for a question whose section is source [1]). Recorded as
+  `reason: model_refused` so it counts against refusal correctness instead of hiding
+  as a citation failure.
+- **Only 35 of 40 questions are scorable for retrieval**: the 5 refusal traps have no
+  expected section. End-to-end they do score, through the `refused` flag.
