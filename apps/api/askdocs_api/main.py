@@ -1,7 +1,8 @@
-"""FastAPI application: retrieval endpoints only (Week 1).
+"""FastAPI application: retrieval (`/search`) and streaming answers (`/ask`).
 
-`/ask` (streaming generation) is Week 2; until it exists this service is honest
-about being a retriever, and `/search` is the surface the eval harness measures.
+`/ask` streams the SSE contract in `docs/API.md`: retrieval → token* → citation* →
+usage → done | error. Retrieval is the surface the eval harness measures; `/ask`
+is the surface a stranger uses, and it refuses rather than guesses.
 """
 
 from __future__ import annotations
@@ -15,10 +16,13 @@ from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sse_starlette.sse import EventSourceResponse
 
-from askdocs_api import db
+from askdocs_api import db, sessions
+from askdocs_api.ask import answer
 from askdocs_api.config import get_settings
 from askdocs_api.models import Chunk, Document
 from askdocs_api.retrieval import retrieve
@@ -68,6 +72,14 @@ async def _corpus_hash(session: AsyncSession) -> str | None:
     return row[0] if row else None
 
 
+class AskRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=500)
+    conversation_id: str | None = None
+    doc_scope: list[str] | None = None
+    stream: bool = True
+    provider: str | None = Field(default=None, description="override for eval runs")
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
@@ -80,8 +92,10 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.web_origin],
+        allow_credentials=True,  # the session cookie is httpOnly and cross-origin in dev
         allow_methods=["GET", "POST", "PATCH", "DELETE"],
-        allow_headers=["Content-Type"],
+        allow_headers=["Content-Type", "X-Request-Id"],
+        expose_headers=["X-Request-Id"],
     )
 
     @app.middleware("http")
@@ -116,6 +130,48 @@ def create_app() -> FastAPI:
             checks["db"] = f"error: {type(exc).__name__}"
         status = "ok" if checks["db"] == "ok" else "degraded"
         return HealthResponse(status=status, checks=checks)
+
+    @app.post("/api/v1/ask")
+    async def ask(
+        payload: AskRequest,
+        request: Request,
+        session: AsyncSession = Depends(db.get_session),
+    ) -> EventSourceResponse:
+        """Stream one grounded answer. Refusal is a 200 with `refused: true`.
+
+        The session cookie is issued here on first use (ADR-008): no login, no
+        email, nothing stored server-side beyond the conversation itself.
+        """
+        if "\x00" in payload.question or not payload.question.strip():
+            raise HTTPException(status_code=422, detail="validation_error")
+
+        existing = sessions.verify(request.cookies.get(sessions.COOKIE))
+        session_id, cookie = (existing, None) if existing else sessions.issue()
+
+        stream = answer(
+            session,
+            payload.question,
+            request_id=getattr(request.state, "request_id", "r-unknown"),
+            conversation_id=uuid.UUID(payload.conversation_id) if payload.conversation_id else None,
+            generator_provider=payload.provider,
+        )
+
+        async def guarded() -> AsyncIterator[dict[str, str]]:
+            # Cancel generation when the reader closes the tab: tokens already
+            # billed stay billed, so the abort is logged rather than hidden.
+            async for event in stream:
+                if await request.is_disconnected():
+                    return
+                yield event
+
+        response = EventSourceResponse(
+            guarded(),
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+        if cookie:
+            response.headers.append("set-cookie", sessions.cookie_header(cookie))
+        response.headers["X-Session-Id"] = session_id or ""
+        return response
 
     @app.get("/api/v1/search", response_model=SearchResponse)
     async def search(
