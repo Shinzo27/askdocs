@@ -1,0 +1,1594 @@
+{
+  "run": {
+    "timestamp": "2026-11-22T11:08:24.840943+00:00",
+    "questions": 25,
+    "full": false
+  },
+  "corpus": {
+    "hash": "f7683ce4b68b5dd4392b5aa9e3505daad9a580f73c2e98fb3f11ef411d1450c9",
+    "extractor": "26.11.0",
+    "embedding_model": "BAAI/bge-small-en-v1.5"
+  },
+  "configs": [
+    {
+      "name": "dense",
+      "metrics": {
+        "recall@10": 0.84,
+        "mrr@10": 0.62,
+        "section_hit_rate@1": 0.52,
+        "p50_ms": 22.3,
+        "p95_ms": 23.5
+      },
+      "questions": [
+        {
+          "id": "q001",
+          "question": "How much can I deduct under section 80C for my child's tuition fees?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ]
+          ],
+          "first_correct_rank": 5,
+          "top1": [
+            "it-act-1961",
+            "80CCE"
+          ]
+        },
+        {
+          "id": "q002",
+          "question": "What is the maximum deduction available under section 80C in a financial year?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ],
+            [
+              "it-act-1961",
+              "80CCE"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80CCE"
+          ]
+        },
+        {
+          "id": "q003",
+          "question": "What is the deduction limit for health insurance premia under section 80D?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80D"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80D"
+          ]
+        },
+        {
+          "id": "q004",
+          "question": "How much can I contribute to the National Pension System and claim under section 80CCD?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80CCD"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80CCD"
+          ]
+        },
+        {
+          "id": "q008",
+          "question": "Who is eligible for the rebate under section 87A and how much is it?",
+          "expected": [
+            [
+              "it-act-1961",
+              "87A"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "87A"
+          ]
+        },
+        {
+          "id": "q009",
+          "question": "How is the annual value of a let-out house property computed for tax?",
+          "expected": [
+            [
+              "it-act-1961",
+              "23"
+            ],
+            [
+              "it-act-1961",
+              "24"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-act-2025",
+            "20"
+          ]
+        },
+        {
+          "id": "q010",
+          "question": "What deduction is available for medical treatment of a specified disease under section 80DDB?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80DDB"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80DDB"
+          ]
+        },
+        {
+          "id": "q011",
+          "question": "When is profit on sale of a capital asset charged as capital gains?",
+          "expected": [
+            [
+              "it-act-1961",
+              "45"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-act-1961",
+            "50B"
+          ]
+        },
+        {
+          "id": "q012",
+          "question": "What are the conditions for claiming exemption under section 54 on sale of a residential house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-act-2025",
+            "131"
+          ]
+        },
+        {
+          "id": "q013",
+          "question": "Can I claim exemption under section 54F if I sell shares and buy a house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54F"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-act-2025",
+            "26"
+          ]
+        },
+        {
+          "id": "q017",
+          "question": "What is the GST registration threshold for a supplier of goods?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "22"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "22"
+          ]
+        },
+        {
+          "id": "q018",
+          "question": "Who must compulsorily register under GST regardless of turnover?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "24"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "4"
+          ]
+        },
+        {
+          "id": "q019",
+          "question": "On what is GST levied and collected under section 9 of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "9"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "cgst-rules-2017",
+            "1"
+          ]
+        },
+        {
+          "id": "q020",
+          "question": "What are the conditions for taking input tax credit under section 16?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "16"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "16"
+          ]
+        },
+        {
+          "id": "q021",
+          "question": "Which credits are blocked under section 17(5) of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "17"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "1"
+          ]
+        },
+        {
+          "id": "q022",
+          "question": "How is the value of a taxable supply determined under GST?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "15"
+            ]
+          ],
+          "first_correct_rank": 5,
+          "top1": [
+            "cgst-rules-2017",
+            "35"
+          ]
+        },
+        {
+          "id": "q023",
+          "question": "What must a registered person furnish in the return under section 39?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "39"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "39"
+          ]
+        },
+        {
+          "id": "q026",
+          "question": "What is the late fee for not furnishing a return of income under section 234F?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234F"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234F"
+          ]
+        },
+        {
+          "id": "q027",
+          "question": "How is interest for default in payment of advance tax computed under section 234B?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234B"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234B"
+          ]
+        },
+        {
+          "id": "q028",
+          "question": "What is the TDS rate on payments to a contractor under section 194C?",
+          "expected": [
+            [
+              "it-act-1961",
+              "194C"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "194C"
+          ]
+        },
+        {
+          "id": "q029",
+          "question": "When can the assessing officer issue a notice under section 148 for income that has escaped assessment?",
+          "expected": [
+            [
+              "it-act-1961",
+              "148"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "148"
+          ]
+        },
+        {
+          "id": "q031",
+          "question": "Which Act governs income of the tax year 2025-26?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": 7,
+          "top1": [
+            "it-act-2025",
+            null
+          ]
+        },
+        {
+          "id": "q032",
+          "question": "Which section of the Income-tax Act, 2025 repeals the Income-tax Act, 1961?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-2025",
+            "536"
+          ]
+        },
+        {
+          "id": "q033",
+          "question": "How does the Income-tax Act, 2025 define the term 'tax year'?",
+          "expected": [
+            [
+              "it-act-2025",
+              "3"
+            ]
+          ],
+          "first_correct_rank": 3,
+          "top1": [
+            "it-act-2025",
+            null
+          ]
+        },
+        {
+          "id": "q035",
+          "question": "Who is a resident in India under the Income-tax Act, 2025?",
+          "expected": [
+            [
+              "it-act-2025",
+              "6"
+            ]
+          ],
+          "first_correct_rank": 8,
+          "top1": [
+            "it-act-2025",
+            "202"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lexical",
+      "metrics": {
+        "recall@10": 0.6,
+        "mrr@10": 0.3824,
+        "section_hit_rate@1": 0.28,
+        "p50_ms": 19.5,
+        "p95_ms": 42.5
+      },
+      "questions": [
+        {
+          "id": "q001",
+          "question": "How much can I deduct under section 80C for my child's tuition fees?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ]
+          ],
+          "first_correct_rank": 6,
+          "top1": [
+            "it-act-1961",
+            "5"
+          ]
+        },
+        {
+          "id": "q002",
+          "question": "What is the maximum deduction available under section 80C in a financial year?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ],
+            [
+              "it-act-1961",
+              "80CCE"
+            ]
+          ],
+          "first_correct_rank": 4,
+          "top1": [
+            "it-act-1961",
+            "80A"
+          ]
+        },
+        {
+          "id": "q003",
+          "question": "What is the deduction limit for health insurance premia under section 80D?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80D"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80D"
+          ]
+        },
+        {
+          "id": "q004",
+          "question": "How much can I contribute to the National Pension System and claim under section 80CCD?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80CCD"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80CCD"
+          ]
+        },
+        {
+          "id": "q008",
+          "question": "Who is eligible for the rebate under section 87A and how much is it?",
+          "expected": [
+            [
+              "it-act-1961",
+              "87A"
+            ]
+          ],
+          "first_correct_rank": 3,
+          "top1": [
+            "it-act-1961",
+            "9"
+          ]
+        },
+        {
+          "id": "q009",
+          "question": "How is the annual value of a let-out house property computed for tax?",
+          "expected": [
+            [
+              "it-act-1961",
+              "23"
+            ],
+            [
+              "it-act-1961",
+              "24"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "23"
+          ]
+        },
+        {
+          "id": "q010",
+          "question": "What deduction is available for medical treatment of a specified disease under section 80DDB?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80DDB"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80DDB"
+          ]
+        },
+        {
+          "id": "q011",
+          "question": "When is profit on sale of a capital asset charged as capital gains?",
+          "expected": [
+            [
+              "it-act-1961",
+              "45"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-rules-2026",
+            "6"
+          ]
+        },
+        {
+          "id": "q012",
+          "question": "What are the conditions for claiming exemption under section 54 on sale of a residential house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "54"
+          ]
+        },
+        {
+          "id": "q013",
+          "question": "Can I claim exemption under section 54F if I sell shares and buy a house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54F"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-act-1961",
+            "1"
+          ]
+        },
+        {
+          "id": "q017",
+          "question": "What is the GST registration threshold for a supplier of goods?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "22"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "14"
+          ]
+        },
+        {
+          "id": "q018",
+          "question": "Who must compulsorily register under GST regardless of turnover?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "24"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "32"
+          ]
+        },
+        {
+          "id": "q019",
+          "question": "On what is GST levied and collected under section 9 of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "9"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "4"
+          ]
+        },
+        {
+          "id": "q020",
+          "question": "What are the conditions for taking input tax credit under section 16?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "16"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "cgst-act-2017",
+            "19"
+          ]
+        },
+        {
+          "id": "q021",
+          "question": "Which credits are blocked under section 17(5) of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "17"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "4"
+          ]
+        },
+        {
+          "id": "q022",
+          "question": "How is the value of a taxable supply determined under GST?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "15"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "14"
+          ]
+        },
+        {
+          "id": "q023",
+          "question": "What must a registered person furnish in the return under section 39?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "39"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-rules-2026",
+            "238"
+          ]
+        },
+        {
+          "id": "q026",
+          "question": "What is the late fee for not furnishing a return of income under section 234F?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234F"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234F"
+          ]
+        },
+        {
+          "id": "q027",
+          "question": "How is interest for default in payment of advance tax computed under section 234B?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234B"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234B"
+          ]
+        },
+        {
+          "id": "q028",
+          "question": "What is the TDS rate on payments to a contractor under section 194C?",
+          "expected": [
+            [
+              "it-act-1961",
+              "194C"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-act-1961",
+            "9"
+          ]
+        },
+        {
+          "id": "q029",
+          "question": "When can the assessing officer issue a notice under section 148 for income that has escaped assessment?",
+          "expected": [
+            [
+              "it-act-1961",
+              "148"
+            ]
+          ],
+          "first_correct_rank": 5,
+          "top1": [
+            "it-act-1961",
+            "297"
+          ]
+        },
+        {
+          "id": "q031",
+          "question": "Which Act governs income of the tax year 2025-26?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-rules-2026",
+            "5"
+          ]
+        },
+        {
+          "id": "q032",
+          "question": "Which section of the Income-tax Act, 2025 repeals the Income-tax Act, 1961?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": 9,
+          "top1": [
+            "it-rules-2026",
+            "14"
+          ]
+        },
+        {
+          "id": "q033",
+          "question": "How does the Income-tax Act, 2025 define the term 'tax year'?",
+          "expected": [
+            [
+              "it-act-2025",
+              "3"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-rules-2026",
+            "7"
+          ]
+        },
+        {
+          "id": "q035",
+          "question": "Who is a resident in India under the Income-tax Act, 2025?",
+          "expected": [
+            [
+              "it-act-2025",
+              "6"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-act-2025",
+            "SCHEDULE VI"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hybrid",
+      "metrics": {
+        "recall@10": 0.8,
+        "mrr@10": 0.5908,
+        "section_hit_rate@1": 0.52,
+        "p50_ms": 41.0,
+        "p95_ms": 65.2
+      },
+      "questions": [
+        {
+          "id": "q001",
+          "question": "How much can I deduct under section 80C for my child's tuition fees?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-act-1961",
+            "80CCE"
+          ]
+        },
+        {
+          "id": "q002",
+          "question": "What is the maximum deduction available under section 80C in a financial year?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ],
+            [
+              "it-act-1961",
+              "80CCE"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80CCE"
+          ]
+        },
+        {
+          "id": "q003",
+          "question": "What is the deduction limit for health insurance premia under section 80D?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80D"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80D"
+          ]
+        },
+        {
+          "id": "q004",
+          "question": "How much can I contribute to the National Pension System and claim under section 80CCD?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80CCD"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80CCD"
+          ]
+        },
+        {
+          "id": "q008",
+          "question": "Who is eligible for the rebate under section 87A and how much is it?",
+          "expected": [
+            [
+              "it-act-1961",
+              "87A"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "87A"
+          ]
+        },
+        {
+          "id": "q009",
+          "question": "How is the annual value of a let-out house property computed for tax?",
+          "expected": [
+            [
+              "it-act-1961",
+              "23"
+            ],
+            [
+              "it-act-1961",
+              "24"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-act-2025",
+            "21"
+          ]
+        },
+        {
+          "id": "q010",
+          "question": "What deduction is available for medical treatment of a specified disease under section 80DDB?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80DDB"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80DDB"
+          ]
+        },
+        {
+          "id": "q011",
+          "question": "When is profit on sale of a capital asset charged as capital gains?",
+          "expected": [
+            [
+              "it-act-1961",
+              "45"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-act-1961",
+            "54"
+          ]
+        },
+        {
+          "id": "q012",
+          "question": "What are the conditions for claiming exemption under section 54 on sale of a residential house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "54"
+          ]
+        },
+        {
+          "id": "q013",
+          "question": "Can I claim exemption under section 54F if I sell shares and buy a house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54F"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "54F"
+          ]
+        },
+        {
+          "id": "q017",
+          "question": "What is the GST registration threshold for a supplier of goods?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "22"
+            ]
+          ],
+          "first_correct_rank": 9,
+          "top1": [
+            "cgst-rules-2017",
+            "14"
+          ]
+        },
+        {
+          "id": "q018",
+          "question": "Who must compulsorily register under GST regardless of turnover?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "24"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-act-2017",
+            "22"
+          ]
+        },
+        {
+          "id": "q019",
+          "question": "On what is GST levied and collected under section 9 of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "9"
+            ]
+          ],
+          "first_correct_rank": 6,
+          "top1": [
+            "cgst-act-2017",
+            "3"
+          ]
+        },
+        {
+          "id": "q020",
+          "question": "What are the conditions for taking input tax credit under section 16?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "16"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "16"
+          ]
+        },
+        {
+          "id": "q021",
+          "question": "Which credits are blocked under section 17(5) of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "17"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "1"
+          ]
+        },
+        {
+          "id": "q022",
+          "question": "How is the value of a taxable supply determined under GST?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "15"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-rules-2017",
+            "82"
+          ]
+        },
+        {
+          "id": "q023",
+          "question": "What must a registered person furnish in the return under section 39?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "39"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "39"
+          ]
+        },
+        {
+          "id": "q026",
+          "question": "What is the late fee for not furnishing a return of income under section 234F?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234F"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234F"
+          ]
+        },
+        {
+          "id": "q027",
+          "question": "How is interest for default in payment of advance tax computed under section 234B?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234B"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234B"
+          ]
+        },
+        {
+          "id": "q028",
+          "question": "What is the TDS rate on payments to a contractor under section 194C?",
+          "expected": [
+            [
+              "it-act-1961",
+              "194C"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "194C"
+          ]
+        },
+        {
+          "id": "q029",
+          "question": "When can the assessing officer issue a notice under section 148 for income that has escaped assessment?",
+          "expected": [
+            [
+              "it-act-1961",
+              "148"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "148"
+          ]
+        },
+        {
+          "id": "q031",
+          "question": "Which Act governs income of the tax year 2025-26?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": 4,
+          "top1": [
+            "it-act-2025",
+            null
+          ]
+        },
+        {
+          "id": "q032",
+          "question": "Which section of the Income-tax Act, 2025 repeals the Income-tax Act, 1961?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": 7,
+          "top1": [
+            "it-rules-2026",
+            "14"
+          ]
+        },
+        {
+          "id": "q033",
+          "question": "How does the Income-tax Act, 2025 define the term 'tax year'?",
+          "expected": [
+            [
+              "it-act-2025",
+              "3"
+            ]
+          ],
+          "first_correct_rank": 10,
+          "top1": [
+            "it-act-2025",
+            "1"
+          ]
+        },
+        {
+          "id": "q035",
+          "question": "Who is a resident in India under the Income-tax Act, 2025?",
+          "expected": [
+            [
+              "it-act-2025",
+              "6"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-rules-2026",
+            "5"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hybrid+rerank",
+      "metrics": {
+        "recall@10": 0.92,
+        "mrr@10": 0.79,
+        "section_hit_rate@1": 0.72,
+        "p50_ms": 1982.7,
+        "p95_ms": 2570.6
+      },
+      "questions": [
+        {
+          "id": "q001",
+          "question": "How much can I deduct under section 80C for my child's tuition fees?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ]
+          ],
+          "first_correct_rank": 6,
+          "top1": [
+            "it-act-1961",
+            "80CCE"
+          ]
+        },
+        {
+          "id": "q002",
+          "question": "What is the maximum deduction available under section 80C in a financial year?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80C"
+            ],
+            [
+              "it-act-1961",
+              "80CCE"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80CCE"
+          ]
+        },
+        {
+          "id": "q003",
+          "question": "What is the deduction limit for health insurance premia under section 80D?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80D"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80D"
+          ]
+        },
+        {
+          "id": "q004",
+          "question": "How much can I contribute to the National Pension System and claim under section 80CCD?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80CCD"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80CCD"
+          ]
+        },
+        {
+          "id": "q008",
+          "question": "Who is eligible for the rebate under section 87A and how much is it?",
+          "expected": [
+            [
+              "it-act-1961",
+              "87A"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "87A"
+          ]
+        },
+        {
+          "id": "q009",
+          "question": "How is the annual value of a let-out house property computed for tax?",
+          "expected": [
+            [
+              "it-act-1961",
+              "23"
+            ],
+            [
+              "it-act-1961",
+              "24"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "23"
+          ]
+        },
+        {
+          "id": "q010",
+          "question": "What deduction is available for medical treatment of a specified disease under section 80DDB?",
+          "expected": [
+            [
+              "it-act-1961",
+              "80DDB"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "80DDB"
+          ]
+        },
+        {
+          "id": "q011",
+          "question": "When is profit on sale of a capital asset charged as capital gains?",
+          "expected": [
+            [
+              "it-act-1961",
+              "45"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "it-act-1961",
+            "50B"
+          ]
+        },
+        {
+          "id": "q012",
+          "question": "What are the conditions for claiming exemption under section 54 on sale of a residential house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "54"
+          ]
+        },
+        {
+          "id": "q013",
+          "question": "Can I claim exemption under section 54F if I sell shares and buy a house?",
+          "expected": [
+            [
+              "it-act-1961",
+              "54F"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-rules-2026",
+            "11"
+          ]
+        },
+        {
+          "id": "q017",
+          "question": "What is the GST registration threshold for a supplier of goods?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "22"
+            ]
+          ],
+          "first_correct_rank": 3,
+          "top1": [
+            "cgst-rules-2017",
+            "138"
+          ]
+        },
+        {
+          "id": "q018",
+          "question": "Who must compulsorily register under GST regardless of turnover?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "24"
+            ]
+          ],
+          "first_correct_rank": null,
+          "top1": [
+            "cgst-act-2017",
+            "22"
+          ]
+        },
+        {
+          "id": "q019",
+          "question": "On what is GST levied and collected under section 9 of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "9"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "9"
+          ]
+        },
+        {
+          "id": "q020",
+          "question": "What are the conditions for taking input tax credit under section 16?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "16"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "16"
+          ]
+        },
+        {
+          "id": "q021",
+          "question": "Which credits are blocked under section 17(5) of the CGST Act?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "17"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "17"
+          ]
+        },
+        {
+          "id": "q022",
+          "question": "How is the value of a taxable supply determined under GST?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "15"
+            ]
+          ],
+          "first_correct_rank": 4,
+          "top1": [
+            "cgst-rules-2017",
+            "5"
+          ]
+        },
+        {
+          "id": "q023",
+          "question": "What must a registered person furnish in the return under section 39?",
+          "expected": [
+            [
+              "cgst-act-2017",
+              "39"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "cgst-act-2017",
+            "39"
+          ]
+        },
+        {
+          "id": "q026",
+          "question": "What is the late fee for not furnishing a return of income under section 234F?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234F"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234F"
+          ]
+        },
+        {
+          "id": "q027",
+          "question": "How is interest for default in payment of advance tax computed under section 234B?",
+          "expected": [
+            [
+              "it-act-1961",
+              "234B"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "234B"
+          ]
+        },
+        {
+          "id": "q028",
+          "question": "What is the TDS rate on payments to a contractor under section 194C?",
+          "expected": [
+            [
+              "it-act-1961",
+              "194C"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "194C"
+          ]
+        },
+        {
+          "id": "q029",
+          "question": "When can the assessing officer issue a notice under section 148 for income that has escaped assessment?",
+          "expected": [
+            [
+              "it-act-1961",
+              "148"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-1961",
+            "148"
+          ]
+        },
+        {
+          "id": "q031",
+          "question": "Which Act governs income of the tax year 2025-26?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": 2,
+          "top1": [
+            "it-act-2025",
+            null
+          ]
+        },
+        {
+          "id": "q032",
+          "question": "Which section of the Income-tax Act, 2025 repeals the Income-tax Act, 1961?",
+          "expected": [
+            [
+              "it-act-2025",
+              "536"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-2025",
+            "536"
+          ]
+        },
+        {
+          "id": "q033",
+          "question": "How does the Income-tax Act, 2025 define the term 'tax year'?",
+          "expected": [
+            [
+              "it-act-2025",
+              "3"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-2025",
+            "3"
+          ]
+        },
+        {
+          "id": "q035",
+          "question": "Who is a resident in India under the Income-tax Act, 2025?",
+          "expected": [
+            [
+              "it-act-2025",
+              "6"
+            ]
+          ],
+          "first_correct_rank": 1,
+          "top1": [
+            "it-act-2025",
+            "6"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -6,7 +6,7 @@ Naming: `YYYY-MM-DDTHH-MM.json` (machine) and `YYYY-MM-DDTHH-MM.md` (table paste
 
 | Report | Run | Citation accuracy | Notes |
 |---|---|---|---|
-| — | — | — | first run lands at the end of Week 1 (retrieval only) |
+| [`retrieval-w1.md`](retrieval-w1.md) | 2026-11-22 | n/a (retrieval only) | recall@10 0.89 hybrid+rerank vs 0.80 dense-only on 35 questions; 4 misses classified in [`failures.md`](failures.md) |
 
 Two rules for this directory:
 

@@ -13,6 +13,7 @@ Parked deliberately so they do not delay a measured v1. Each entry names the sig
 | Multi-language (Hindi, Gujarati) | Retrieval quality in English is not yet proven; translation would hide retrieval errors | English citation accuracy ≥ 0.85 sustained |
 | ITR form recommender | Deterministic logic, not retrieval — a different feature entirely | A user interview where "which ITR" dominates |
 | Streaming rerank (progressive citations) | Complexity for a 250 ms stage | First-token latency becomes the top complaint |
+| ONNX / quantised cross-encoder | Week 1 shipped fp32 on CPU: 1.8 s p50 for 30 candidates, ~7× the 250 ms budget. Accuracy is the reason to keep the stage | Rerank is still the p95 bottleneck after the Week 4 load test |
 | Fine-tuned answer model | A 7B with a strong prompt plus validation is the honest baseline; tuning before measuring is guessing | Grounding failures dominate the failure taxonomy after prompt fixes |
 
 ## Known gaps (documented, not hidden)

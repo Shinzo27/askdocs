@@ -116,6 +116,40 @@ The four original documents now have an asserted chunk count (3,852 / 579 / 889 
 
 ---
 
+## ADR-013 — Retrieval was tuned against measurements, and three of them overturned the design
+
+**Decision.** The lexical retriever is an IDF-weighted OR over the question's lexemes
+(`Σ 1/(1+ndoc)` from a materialised `lexeme_stats` table); the CBDT FAQ is excluded from
+the retrieval index; chunks that are repeal notes are flagged `omitted` and skipped; the
+cross-encoder sees `Section · title — (document): text`, not raw passage text.
+
+**Why, in the order the numbers arrived.** Each of these is a measurement, not a
+preference, and each replaced something that looked reasonable:
+
+1. `websearch_to_tsquery` ANDs terms → a sentence-length question matched almost nothing
+   (lexical recall@10 **0.08**).
+2. An unfiltered OR ranked by `ts_rank_cd` → "deduct" occurs in 1,653 chunks, "80C" in 12,
+   so the common stem won (**0.16**).
+3. Keeping only the rarest N lexemes → still bad (**0.32**): rarity is not informativeness.
+4. The FAQ mirror sat in the index → FAQ text is question-shaped, so it out-ranked statute
+   for every natural question while carrying no section to cite (**0.68** for hybrid+rerank,
+   against 0.89 once excluded). It is also eval-only by licence, so shipping it broke two
+   rules at once.
+5. The cross-encoder saw bare passage text, which often does not repeat its own section
+   number → prefixing the citation address lifted section hit@1 from **0.36 to 0.60**.
+
+**Consequences.** Recall@10 is 0.89 on the 35 scorable questions, 0.80 for dense-only — the
+claim "hybrid + rerank beats dense alone" is now backed by a committed report
+(`docs/eval/retrieval-w1.md`) rather than asserted. The four remaining misses are
+document-level confusions (right section number, wrong Act) and belong to query rewriting,
+not to another retriever tweak; they are classified in `docs/eval/failures.md`.
+
+**Rejected.** Tuning the cross-encoder pool down to 20 to hit a latency target: it costs
+3 accuracy points (0.89 → 0.86) and the budget miss is better fixed in Week 4 by making the
+encoder faster, not by making the retrieval worse.
+
+---
+
 ## ADR-012 — Two external skill sets are the review gate, and their output is committed
 
 **Decision.** Code quality is judged against **ECC** (`github.com/affaan-m/ECC`) and UI quality against **UI UX Pro Max** (`github.com/nextlevelbuilder/ui-ux-pro-max-skill`). Their artefacts live in the repo: the gate table in `docs/STANDARDS.md` and the design system in `design-system/askdocs/`.
