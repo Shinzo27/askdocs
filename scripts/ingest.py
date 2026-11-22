@@ -33,7 +33,7 @@ import json
 import re
 import subprocess
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -82,6 +82,7 @@ class Chunk:
     chunk_index: int
     text: str
     chars: int
+    omitted: bool = False
 
 
 # --------------------------------------------------------------------------- #
@@ -98,7 +99,9 @@ def extractor_version() -> dict:
     pretending two corpora are comparable.
     """
     try:
-        out = subprocess.run(["pdftotext", "-v"], capture_output=True, text=True)
+        out = subprocess.run(
+            ["pdftotext", "-v"], capture_output=True, text=True, check=False
+        )
         blob = (out.stderr or "") + (out.stdout or "")
         m = re.search(r"pdftotext version ([\d.]+)", blob)
         return {"pdftotext": m.group(1) if m else "unknown"}
@@ -188,15 +191,28 @@ def is_toc_page(page: str, page_no: int = 1, total_pages: int = 0, bounded: bool
     return hits >= 8 and long_lines <= len(lines) * 0.2
 
 
+def is_omitted_provision(body: str) -> bool:
+    """True when the chunk is a repeal note, not a live provision.
+
+    Indian statute PDFs keep the family-history note where an omitted section used
+    to be: "[Deduction in respect of educational expenses...].—Omitted by the
+    Finance Act, 1985". Such a chunk matches a question about tuition fees
+    perfectly and answers it wrongly, so it is flagged at index time and dropped
+    from retrieval - a citation to a repealed deduction is the exact failure this
+    product exists to avoid.
+    """
+    head = body[:300].lower()
+    return "omitted by the" in head
+
+
 def looks_like_title(line: str) -> bool:
     s = line.strip()
     if not TITLE_LINE_RE.match(s):
         return False
     if s.startswith("(") or len(s) < 6:
         return False
-    if sum(ch.isdigit() for ch in s) > 4:  # table rows / form fields
-        return False
-    return True
+    # table rows / form fields are number-dense, titles are not
+    return sum(ch.isdigit() for ch in s) <= 4
 
 
 # --------------------------------------------------------------------------- #
@@ -381,19 +397,30 @@ def ingest_statute(path: Path, doc: dict, pdf_mode: str, header_style: str) -> l
                            "chapter": chap, "page": page, "lines": [line]})
 
     chunks: list[Chunk] = []
+    # A section can resume after an interruption (a header repeated later, a table
+    # split across pages), so the chunk counter is per section across the whole
+    # document, not per group - otherwise two groups both start at index 0 and the
+    # `doc:section:index` primary key collides on load (measured: it-rules-2026:1:0).
+    next_index: dict[str, int] = {}
     for g in groups:
         body = "\n".join(g["lines"]).strip()
         if len(body) < MIN_CHUNK:
             continue
-        for i, piece in enumerate(pack(split_paragraphs(body))):
+        key = g["section"] or "x"
+        start = next_index.get(key, 0)
+        pieces = pack(split_paragraphs(body))
+        for offset, piece in enumerate(pieces):
+            i = start + offset
             chunks.append(Chunk(
-                id=f"{doc['doc_id']}:{g['section'] or 'x'}:{i}",
+                id=f"{doc['doc_id']}:{key}:{i}",
                 doc_id=doc["doc_id"], doc_title=doc["title"], doc_type=doc["doc_type"],
                 vintage=doc.get("vintage"), applies_to_ay=doc.get("applies_to_ay"),
                 section=g["section"], section_title=g["section_title"],
                 chapter=g["chapter"], page=g["page"], chunk_index=i,
                 text=piece, chars=len(piece),
+                omitted=is_omitted_provision(piece),
             ))
+        next_index[key] = start + len(pieces)
     return chunks
 
 
@@ -525,6 +552,7 @@ def write_outputs(all_chunks: list[Chunk], docs: list[dict], report: dict[str, d
         "total_chars": sum(c.chars for c in all_chunks),
         "avg_chars": round(sum(c.chars for c in all_chunks) / max(len(all_chunks), 1)),
         "max_chars": max((c.chars for c in all_chunks), default=0),
+        "omitted_chunks": sum(1 for c in all_chunks if c.omitted),
     }
     (OUT / "stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
     print(json.dumps({k: stats[k] for k in

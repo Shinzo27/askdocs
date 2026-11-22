@@ -1,0 +1,28 @@
+# API image: CPU-only, no CUDA, model weights pulled at first use into the cache.
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    HF_HOME=/root/.cache/huggingface
+
+WORKDIR /app
+
+# libgomp is what torch's CPU kernels link against on slim images.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY infra/requirements-api.txt /app/requirements-api.txt
+RUN pip install --no-cache-dir -r /app/requirements-api.txt
+
+COPY apps/api /app
+COPY infra /app/infra
+
+RUN pip install --no-cache-dir -e /app
+
+EXPOSE 8000
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s \
+  CMD curl -fsS http://localhost:8000/healthz || exit 1
+
+CMD ["uvicorn", "askdocs_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

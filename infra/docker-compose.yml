@@ -1,0 +1,54 @@
+name: askdocs
+
+# Week 1 stack: Postgres 16 + pgvector and the retrieval API.
+# Ollama is behind the `generation` profile because Week 1 makes no LLM calls -
+# `docker compose up` stays a 300 MB start, not a 5 GB one. Week 2 turns it on
+# with: docker compose --profile generation up
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: askdocs-db
+    environment:
+      POSTGRES_USER: askdocs
+      POSTGRES_PASSWORD: askdocs
+      POSTGRES_DB: askdocs
+    ports:
+      - "5432:5432"
+    volumes:
+      - askdocs-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U askdocs -d askdocs"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    container_name: askdocs-api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://askdocs:askdocs@db:5432/askdocs
+      CORPUS_CHUNKS: /app/data/processed/chunks.jsonl
+      WEB_ORIGIN: http://localhost:3000
+      DEBUG_ENABLED: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data/processed:/app/data/processed:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: askdocs-ollama
+    profiles: ["generation"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - askdocs-ollama:/root/.ollama
+
+volumes:
+  askdocs-pgdata:
+  askdocs-ollama:

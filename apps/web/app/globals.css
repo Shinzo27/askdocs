@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/*
+  Theme mirrors design-system/askdocs/tokens.json (W3C DTCG). Tailwind 4 reads
+  these as utilities: bg-primary, text-muted-foreground, border-border,
+  font-heading, rounded-card. Change a colour here and it changes everywhere -
+  the tokens file is the source of truth, this block is its projection.
+*/
+@theme {
+  --color-primary: #1e3a5f;
+  --color-on-primary: #ffffff;
+  --color-secondary: #334155;
+  --color-on-secondary: #ffffff;
+  --color-accent: #b45309;
+  --color-on-accent: #ffffff;
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-muted: #e9eef5;
+  --color-muted-foreground: #475569;
+  --color-border: #cbd5e1;
+  --color-destructive: #dc2626;
+  --color-on-destructive: #ffffff;
+  --color-ring: #1e3a5f;
+
+  --font-heading: var(--font-eb-garamond), Georgia, serif;
+  --font-body: var(--font-lato), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 16px;
+}
+
+@layer base {
+  html {
+    /* No zoom disabling, ever: 200% zoom is a tested state. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+    line-height: 1.6;
+  }
+
+  /* Focus is never removed, only restyled: 2px ring, 2px offset. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Statute text is set at a 68-character measure: the reader is checking an
+     argument, not skimming a feed. */
+  .statute-measure {
+    max-width: 68ch;
+    line-height: 1.65;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 50;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-radius: 0 0 var(--radius-control) 0;
+  }
+
+  .skip-link:focus {
+    left: 0;
+  }
+}
