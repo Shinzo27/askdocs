@@ -1,0 +1,82 @@
+{
+  "run": {
+    "timestamp": "2026-11-22T16:27:11.036628+00:00",
+    "provider": "ollama",
+    "model": "qwen2.5:3b-instruct",
+    "prompt_version": "31926134",
+    "corpus_hash": "f7683ce4b68b5dd4392b5aa9e3505daad9a580f73c2e98fb3f11ef411d1450c9",
+    "questions": 2,
+    "scored": 2,
+    "citation_accuracy": 0.0,
+    "fact_recall": 0.0,
+    "must_not_say_violations": 0,
+    "refusal_correctness": 1.0,
+    "out_of_corpus_refused": 1.0,
+    "over_refusals": 0,
+    "errors": 0,
+    "p50_total_ms": 20453.0,
+    "p95_total_ms": 13186,
+    "p95_first_token_ms": 10734,
+    "cost_inr_per_query": 0.0
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "deduction",
+      "question": "How much can I deduct under section 80C for my child's tuition fees?",
+      "expected": [
+        "80C"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": false,
+      "reason": "no_markers",
+      "citation_valid": false,
+      "matched_facts": [],
+      "missing_facts": [
+        "tuition fees are among the sums eligible under 80C",
+        "the 80C ceiling is one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 8799,
+        "rerank": 3707,
+        "first_token": 26990,
+        "total": 27720
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "I can't verify this from the documents I have."
+    },
+    {
+      "id": "q006",
+      "category": "deduction",
+      "question": "I get no HRA from my employer. What rent deduction can I claim under section 80GG?",
+      "expected": [
+        "80GG"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": false,
+      "reason": "no_markers",
+      "citation_valid": false,
+      "matched_facts": [],
+      "missing_facts": [
+        "five thousand rupees per month",
+        "or twenty-five per cent of total income, whichever is less"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 432,
+        "rerank": 1017,
+        "first_token": 10734,
+        "total": 13186
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "I get no HRA from my employer. What rent deduction can I claim under section 80GG?\n\nI can't verify this from the documents I have."
+    }
+  ]
+}

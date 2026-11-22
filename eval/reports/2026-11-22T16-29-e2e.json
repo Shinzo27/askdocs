@@ -1,0 +1,93 @@
+{
+  "run": {
+    "timestamp": "2026-11-22T16:29:07.400264+00:00",
+    "provider": "ollama",
+    "model": "qwen2.5:3b-instruct",
+    "prompt_version": "31926134",
+    "corpus_hash": "f7683ce4b68b5dd4392b5aa9e3505daad9a580f73c2e98fb3f11ef411d1450c9",
+    "questions": 2,
+    "scored": 2,
+    "citation_accuracy": 0.5,
+    "fact_recall": 0.5,
+    "must_not_say_violations": 0,
+    "refusal_correctness": 0.75,
+    "out_of_corpus_refused": 1.0,
+    "over_refusals": 1,
+    "errors": 0,
+    "p50_total_ms": 23526.5,
+    "p95_total_ms": 22372,
+    "p95_first_token_ms": 11423,
+    "cost_inr_per_query": 0.0
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "deduction",
+      "question": "How much can I deduct under section 80C for my child's tuition fees?",
+      "expected": [
+        "80C"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": true,
+      "reason": "model_refused",
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "tuition fees are among the sums eligible under 80C",
+        "the 80C ceiling is one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 7875,
+        "rerank": 3500,
+        "first_token": 21554,
+        "total": 24681
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80C of the Income-tax Act, 1961 [1] does not specifically mention tuition fees for a child. Therefore, I can't verify this from the documents I have."
+    },
+    {
+      "id": "q006",
+      "category": "deduction",
+      "question": "I get no HRA from my employer. What rent deduction can I claim under section 80GG?",
+      "expected": [
+        "80GG"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80GG",
+          "section_title": "Deductions in respect of rents paid.—In computing the total income of an assessee, not",
+          "chapter": "VI",
+          "page": 354,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 1.2464
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "five thousand rupees per month",
+        "or twenty-five per cent of total income, whichever is less"
+      ],
+      "missing_facts": [],
+      "violated": [],
+      "latency": {
+        "retrieve": 73,
+        "rerank": 1262,
+        "first_token": 11423,
+        "total": 22372
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80GG of the Income-tax Act, 1961 [1] allows for the deduction of any expenditure incurred by an assessee in excess of ten percent of his total income towards payment of rent (by whatever name called) in respect of any furnished or unfurnished accommodation occupied by him for the purposes of his own residence, to the extent to which such excess expenditure does not exceed 2[five thousand rupees] per month or twenty-five percent of his total income for the year, whichever is less. Subject to such other conditions or limitations as may be prescribed, having regard to the area or place in which such accommodation is situated and other relevant considerations. [1]"
+    }
+  ]
+}

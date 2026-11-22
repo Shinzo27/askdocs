@@ -1,0 +1,233 @@
+{
+  "run": {
+    "timestamp": "2026-11-22T16:06:23.754743+00:00",
+    "provider": "echo",
+    "model": "echo-1",
+    "prompt_version": "31926134",
+    "corpus_hash": "f7683ce4b68b5dd4392b5aa9e3505daad9a580f73c2e98fb3f11ef411d1450c9",
+    "questions": 3,
+    "scored": 3,
+    "citation_accuracy": 0.3333,
+    "fact_recall": 0.0,
+    "must_not_say_violations": 0,
+    "refusal_correctness": 0.8333,
+    "out_of_corpus_refused": 1.0,
+    "over_refusals": 1,
+    "errors": 0,
+    "p50_total_ms": 1889,
+    "p95_total_ms": 1889,
+    "p95_first_token_ms": 1882,
+    "cost_inr_per_query": 0.0
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "deduction",
+      "question": "How much can I deduct under section 80C for my child's tuition fees?",
+      "expected": [
+        "80C"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80CCE",
+          "section_title": "Limit on deductions under section 80C, section 80CCC and 80CCD.—The aggregate",
+          "chapter": "VI",
+          "page": 340,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 1.3882
+        },
+        {
+          "marker": 2,
+          "doc_id": "it-act-1961",
+          "section": "80E",
+          "section_title": "Deduction in respect of interest on loan taken for higher education.—(1) In computing the",
+          "chapter": "VI",
+          "page": 346,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": -2.3246
+        },
+        {
+          "marker": 3,
+          "doc_id": "it-act-1961",
+          "section": "194EE",
+          "section_title": "Payments in respect of deposits under National Savings Scheme, etc.—The person",
+          "chapter": "XVII",
+          "page": 645,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": -2.4312
+        },
+        {
+          "marker": 4,
+          "doc_id": "it-act-1961",
+          "section": "8",
+          "section_title": "Subs. by s. 30, ibid., for “as does not exceed ten per cent. of his salary in the previous year” (w.e.f. 1-4-2009)",
+          "chapter": "VI",
+          "page": 338,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": -2.4641
+        },
+        {
+          "marker": 5,
+          "doc_id": "it-act-1961",
+          "section": "80A",
+          "section_title": "Deductions to be made in computing total income.—(1) In computing the total income of an",
+          "chapter": "VI",
+          "page": 328,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": -2.5404
+        },
+        {
+          "marker": 6,
+          "doc_id": "it-act-1961",
+          "section": "80C",
+          "section_title": "Deduction in respect of life insurance premia, deferred annuity, contributions to",
+          "chapter": "VI",
+          "page": 330,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": -2.7194
+        }
+      ],
+      "citation_ok": false,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "tuition fees are among the sums eligible under 80C",
+        "the 80C ceiling is one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 1105,
+        "rerank": 864,
+        "first_token": 1971,
+        "total": 1978
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Echo mode: no language model is configured, so this answer only repeats the sources it was given [1][2][3][4][5][6]. "
+    },
+    {
+      "id": "q002",
+      "category": "deduction",
+      "question": "What is the maximum deduction available under section 80C in a financial year?",
+      "expected": [
+        "80C",
+        "80CCE"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": true,
+      "reason": "no_section_match",
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 388,
+        "rerank": 1004,
+        "first_token": 1395,
+        "total": 1395
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "I can't verify this from the documents I have: no section in the corpus matches the terms in the question.\n\nTry naming the provision (for example “section 80C”) or the head of income.\n"
+    },
+    {
+      "id": "q003",
+      "category": "deduction",
+      "question": "What is the deduction limit for health insurance premia under section 80D?",
+      "expected": [
+        "80D"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80D",
+          "section_title": "Deduction in respect of health insurance premia.—(1) In computing the total income of an",
+          "chapter": "VI",
+          "page": 341,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 5.1798
+        },
+        {
+          "marker": 2,
+          "doc_id": "it-act-2025",
+          "section": "126",
+          "section_title": "Deduction in respect of health insurance premia",
+          "chapter": "VIII",
+          "page": 187,
+          "vintage": "Act No. 30 of 2025, as amended by Finance Act, 2026",
+          "rerank_score": 3.8044
+        },
+        {
+          "marker": 3,
+          "doc_id": "it-act-1961",
+          "section": "80CCE",
+          "section_title": "Limit on deductions under section 80C, section 80CCC and 80CCD.—The aggregate",
+          "chapter": "VI",
+          "page": 340,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 3.453
+        },
+        {
+          "marker": 4,
+          "doc_id": "it-act-1961",
+          "section": "80C",
+          "section_title": "Deduction in respect of life insurance premia, deferred annuity, contributions to",
+          "chapter": "VI",
+          "page": 330,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 3.3744
+        },
+        {
+          "marker": 5,
+          "doc_id": "it-act-1961",
+          "section": "88",
+          "section_title": "Rebate on life insurance premia, contribution to provident fund, etc.—10[(1) Subject to the",
+          "chapter": "VIII",
+          "page": 428,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 2.5254
+        },
+        {
+          "marker": 6,
+          "doc_id": "it-rules-2026",
+          "section": "10",
+          "section_title": "Deductions under Chapter VIII of the Act",
+          "chapter": null,
+          "page": 745,
+          "vintage": "notified 20 March 2026, in force 1 April 2026",
+          "rerank_score": 0.6734
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "twenty-five thousand rupees for self and family",
+        "fifty thousand rupees where the insured is a senior citizen"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 906,
+        "rerank": 974,
+        "first_token": 1882,
+        "total": 1889
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Echo mode: no language model is configured, so this answer only repeats the sources it was given [1][2][3][4][5][6]. "
+    }
+  ]
+}

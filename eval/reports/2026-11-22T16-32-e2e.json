@@ -1,0 +1,398 @@
+{
+  "run": {
+    "timestamp": "2026-11-22T16:32:54.370310+00:00",
+    "provider": "ollama",
+    "model": "qwen2.5:3b-instruct",
+    "prompt_version": "31926134",
+    "corpus_hash": "f7683ce4b68b5dd4392b5aa9e3505daad9a580f73c2e98fb3f11ef411d1450c9",
+    "questions": 10,
+    "scored": 10,
+    "citation_accuracy": 0.5,
+    "fact_recall": 0.4,
+    "must_not_say_violations": 0,
+    "refusal_correctness": 0.9,
+    "out_of_corpus_refused": 1.0,
+    "over_refusals": 2,
+    "errors": 0,
+    "p50_total_ms": 23921.5,
+    "p95_total_ms": 31918,
+    "p95_first_token_ms": 18986,
+    "cost_inr_per_query": 0.0
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "deduction",
+      "question": "How much can I deduct under section 80C for my child's tuition fees?",
+      "expected": [
+        "80C"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": true,
+      "reason": "model_refused",
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "tuition fees are among the sums eligible under 80C",
+        "the 80C ceiling is one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 340,
+        "rerank": 1206,
+        "first_token": 1953,
+        "total": 5587
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80C of the Income-tax Act, 1961 [1] does not specifically mention tuition fees for a child. Therefore, I can't verify this from the documents I have."
+    },
+    {
+      "id": "q002",
+      "category": "deduction",
+      "question": "What is the maximum deduction available under section 80C in a financial year?",
+      "expected": [
+        "80C",
+        "80CCE"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": true,
+      "reason": "no_section_match",
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 90,
+        "rerank": 999,
+        "first_token": 1092,
+        "total": 1092
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "I can't verify this from the documents I have: no section in the corpus matches the terms in the question.\n\nTry naming the provision (for example “section 80C”) or the head of income.\n"
+    },
+    {
+      "id": "q003",
+      "category": "deduction",
+      "question": "What is the deduction limit for health insurance premia under section 80D?",
+      "expected": [
+        "80D"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80D",
+          "section_title": "Deduction in respect of health insurance premia.—(1) In computing the total income of an",
+          "chapter": "VI",
+          "page": 341,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 5.1798
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "twenty-five thousand rupees for self and family"
+      ],
+      "missing_facts": [
+        "fifty thousand rupees where the insured is a senior citizen"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 44,
+        "rerank": 1301,
+        "first_token": 13704,
+        "total": 23574
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80D of the Income-tax Act, 1961 [1] states that the sum referred to in sub-section (1) shall be the aggregate of the following, namely: the whole of the amount paid to effect or to keep in force an insurance on the health of the assessee or his family, or any contribution made to the Central Government Health Scheme, or such other scheme as may be notified by the Central Government in this behalf, or any payment made on account of preventive health check-up of the assessee or his family, as does not exceed in the aggregate twenty-five thousand rupees."
+    },
+    {
+      "id": "q004",
+      "category": "deduction",
+      "question": "How much can I contribute to the National Pension System and claim under section 80CCD?",
+      "expected": [
+        "80CCD"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80CCD",
+          "section_title": "Deduction in respect of contribution to pension scheme of Central Government.—(1)",
+          "chapter": "VI",
+          "page": 338,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 0.9379
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "the deduction is for contributions to a pension scheme notified by the Central Government"
+      ],
+      "missing_facts": [
+        "an employee may deduct ten per cent of salary"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 87,
+        "rerank": 1191,
+        "first_token": 10372,
+        "total": 17069
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80CCD of the Income-tax Act, 1961 allows an individual employed by the Central Government or any other employer to have a deduction in the computation of his total income for the whole of the amount paid or deposited in his account under a pension scheme notified or as may be notified by the Central Government. The amount does not exceed ten percent of his salary in the previous year. [1]"
+    },
+    {
+      "id": "q005",
+      "category": "deduction",
+      "question": "Can I claim a deduction for interest paid on an education loan, and for how long?",
+      "expected": [
+        "80E"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-2025",
+          "section": "129",
+          "section_title": "Deduction in respect of interest on loan taken for higher education",
+          "chapter": "VIII",
+          "page": 191,
+          "vintage": "Act No. 30 of 2025, as amended by Finance Act, 2026",
+          "rerank_score": 2.0396
+        }
+      ],
+      "citation_ok": false,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "interest on a loan for higher education"
+      ],
+      "missing_facts": [
+        "eight assessment years"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 413,
+        "rerank": 1368,
+        "first_token": 20444,
+        "total": 35811
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "The Income-tax Act, 2025, Section 129, as amended by Finance Act, 2026 [1], allows an individual to claim a deduction for interest paid on a loan taken for the purpose of pursuing higher education, subject to the provisions of this section. This deduction is allowed in computing the total income in respect of the initial tax year and seven tax years immediately succeeding the initial tax year, or until the interest referred to in sub-section (1) is fully paid by the assessee, whichever is earlier."
+    },
+    {
+      "id": "q006",
+      "category": "deduction",
+      "question": "I get no HRA from my employer. What rent deduction can I claim under section 80GG?",
+      "expected": [
+        "80GG"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80GG",
+          "section_title": "Deductions in respect of rents paid.—In computing the total income of an assessee, not",
+          "chapter": "VI",
+          "page": 354,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 1.2464
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "five thousand rupees per month",
+        "or twenty-five per cent of total income, whichever is less"
+      ],
+      "missing_facts": [],
+      "violated": [],
+      "latency": {
+        "retrieve": 355,
+        "rerank": 1291,
+        "first_token": 1865,
+        "total": 15939
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80GG of the Income-tax Act, 1961 [1] allows for the deduction of any expenditure incurred by an assessee in excess of ten percent of his total income towards payment of rent (by whatever name called) in respect of any furnished or unfurnished accommodation occupied by him for the purposes of his own residence, to the extent to which such excess expenditure does not exceed 2[five thousand rupees] per month or twenty-five percent of his total income for the year, whichever is less. Subject to such other conditions or limitations as may be prescribed, having regard to the area or place in which such accommodation is situated and other relevant considerations. [1]"
+    },
+    {
+      "id": "q007",
+      "category": "deduction",
+      "question": "What deduction is allowed on interest on deposits for a senior citizen under section 80TTB?",
+      "expected": [
+        "80TTB"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80TTB",
+          "section_title": "Deduction in respect of interest on deposits in case of senior citizens.—(1) Where the",
+          "chapter": "VI",
+          "page": 425,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 8.3734
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "fifty thousand rupees",
+        "interest on deposits with a bank, co-operative society or post office"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 315,
+        "rerank": 1496,
+        "first_token": 17650,
+        "total": 26026
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80TTB of the Income-tax Act, 1961 [1] does not allow any deduction for interest on deposits for a senior citizen. The section states that no deduction shall be allowed under this section in respect of such income in computing the total income of any partner of the firm or any member of the association or any individual of the body."
+    },
+    {
+      "id": "q008",
+      "category": "deduction",
+      "question": "Who is eligible for the rebate under section 87A and how much is it?",
+      "expected": [
+        "87A"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": false,
+      "reason": "no_markers",
+      "citation_valid": false,
+      "matched_facts": [
+        "a resident individual",
+        "total income does not exceed five hundred thousand rupees"
+      ],
+      "missing_facts": [
+        "rebate of up to twelve thousand five hundred rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 402,
+        "rerank": 1363,
+        "first_token": 15435,
+        "total": 30049
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 87A of the Income-tax Act, 1961, as on consolidated up to Finance Act, 2021, states that an assessee, being an individual resident in India, whose total income does not exceed 7[five hundred thousand] rupees, shall be entitled to a deduction from the amount of income-tax (as computed before allowing the deductions under this Chapter) on his total income with which he is chargeable for any assessment year, of an amount equal to 9[twelve thousand and five hundred] rupees, whichever is less."
+    },
+    {
+      "id": "q009",
+      "category": "deduction",
+      "question": "How is the annual value of a let-out house property computed for tax?",
+      "expected": [
+        "23",
+        "24"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 2,
+          "doc_id": "it-act-2025",
+          "section": "21",
+          "section_title": "Determination of annual value",
+          "chapter": "IV",
+          "page": 52,
+          "vintage": "Act No. 30 of 2025, as amended by Finance Act, 2026",
+          "rerank_score": 4.1512
+        }
+      ],
+      "citation_ok": false,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "a sum equal to thirty per cent of the annual value",
+        "interest on borrowed capital is deductible up to two lakh rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 469,
+        "rerank": 3738,
+        "first_token": 18986,
+        "total": 31918
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "The annual value of a let-out house property is deemed to be the higher of the following:\n\n- The sum for which it might reasonably be expected to let from year to year; or\n- The actual rent received or receivable by the owner, if the property or any part of it is let.\n\nIf the property or any part of it is let and was vacant for the whole or any part of the tax year and owing to such vacancy the actual rent received or receivable by the owner in respect thereof is less than the sum referred to in sub-section (1)(a), the annual value of such property shall be deemed to be the amount so received or receivable. [2]"
+    },
+    {
+      "id": "q010",
+      "category": "deduction",
+      "question": "What deduction is available for medical treatment of a specified disease under section 80DDB?",
+      "expected": [
+        "80DDB"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80DDB",
+          "section_title": "Deduction in respect of medical treatment, etc.—Where an assessee who is resident in",
+          "chapter": "VI",
+          "page": 345,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 5.9645
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "deduction for medical treatment of a specified disease"
+      ],
+      "missing_facts": [
+        "forty thousand rupees, or one lakh rupees where the patient is a senior citizen"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 376,
+        "rerank": 1423,
+        "first_token": 16227,
+        "total": 24269
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Section 80DDB of the Income-tax Act, 1961 allows an assessee who is resident in India to be allowed a deduction of the amount actually paid or a sum of forty thousand rupees, whichever is less, in respect of a previous year for medical treatment of such disease or ailment as may be specified in the rules made in this behalf by the Board. [1]"
+    }
+  ]
+}

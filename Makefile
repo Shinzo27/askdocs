@@ -87,10 +87,16 @@ typecheck:  ## mypy (api) + tsc (web)
 eval-retrieval:  ## 25-question retrieval subset: recall@10, MRR, hit rate
 	$(PY) eval/retrieval_eval.py
 
+eval-e2e:  ## full path: ask the API, score citations, facts, refusals, latency
+	$(PY) eval/e2e_eval.py
+
+eval-e2e-echo:  ## same, with no model (checks SSE + validation only)
+	$(PY) eval/e2e_eval.py --provider echo --model echo-1
+
 eval-full:  ## every question with a section
 	$(PY) eval/retrieval_eval.py --full
 
 verify: doctor test eval-retrieval  ## the Week 1 gate in one command
 
 .PHONY: help doctor .venv env corpus ingest embed up down migrate load db psql api web \
-        test lint fmt typecheck eval-retrieval eval-full verify
+        test lint fmt typecheck eval-retrieval eval-full eval-e2e eval-e2e-echo verify
