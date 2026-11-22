@@ -191,7 +191,7 @@ async def lexical_search(
         rows = (await session.execute(
             text(sql), {"q_text": query, "limit": limit, "terms": lexical_terms, **params}
         )).all()
-    except Exception:  # noqa: BLE001 - an unparseable query means no lexical candidates
+    except Exception:
         return []
     found = []
     for rank, row in enumerate(rows, start=1):

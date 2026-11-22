@@ -109,7 +109,7 @@ def document_rows(meta: dict) -> list[tuple]:
     return out
 
 
-def vector_literal(vector) -> str:  # noqa: ANN001 - numpy row
+def vector_literal(vector) -> str:
     """pgvector's text format is `[a,b,c]`; psycopg would send a Python list as `{a,b,c}`."""
     return "[" + ",".join(f"{float(v):.6f}" for v in vector) + "]"
 
