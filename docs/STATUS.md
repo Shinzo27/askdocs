@@ -175,6 +175,11 @@ Rules for any future eval run, learned the hard way:
 2. **Unique port per run** (`--base-url` is already parameterised; use 8123+).
 3. **Kill by PID, not by pattern.** `pkill -f uvicorn` reaches into every other session's
    server, including ones you cannot see.
+4. **Never read the gate's exit code through a pipe.** `python eval/e2e_eval.py | tail -16`
+   reports `tail`'s status, so a run that printed `GATE FAILED` looks like `EXIT=0`. Both
+   harnesses do `return 1` on failure (verified by pointing one at a dead port: exit 1), so
+   the gate is real — the shell was lying. Redirect to a file and check `$?`, or use
+   `PIPESTATUS`.
 
 Every timing in this file from the 2026-11-23 session also carries the CPU-contention
 caveat above, so treat the numbers as directionally right and the timings as upper bounds.
