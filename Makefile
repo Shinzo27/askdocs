@@ -69,8 +69,9 @@ web:  ## run the app shell on :3000
 	cd $(WEB_DIR) && npm run dev
 
 # --- quality ---------------------------------------------------------------
-test:  ## pytest
+test:  ## pytest (api) + the repo-level parser/pin tests
 	cd $(API_DIR) && ../../$(PY) -m pytest -q
+	$(PY) -m unittest discover -s tests -q
 
 lint:  ## ruff
 	$(PY) -m ruff check apps/api eval scripts

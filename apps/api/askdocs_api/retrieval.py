@@ -280,7 +280,13 @@ def rerank(query: str, candidates: list[Candidate]) -> list[Candidate]:
     """Cross-encoder score for (query, passage); returns a new sorted list."""
     if not candidates:
         return []
-    pairs = [(query, rerank_input(c)) for c in candidates]
+    settings = get_settings()
+    # `RERANK_LABEL=0` scores the raw passage instead of `Section — title — doc: text`.
+    # It exists because prompt_coverage disagrees with hit@1 about which input is
+    # better, and only a measured comparison settles that.
+    pairs = [
+        (query, rerank_input(c) if settings.rerank_label else c.text) for c in candidates
+    ]
     scores = _cross_encoder().predict(pairs, batch_size=32, show_progress_bar=False)
     for candidate, score in zip(candidates, scores, strict=True):
         candidate.scores["rerank"] = float(score)

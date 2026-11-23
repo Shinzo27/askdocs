@@ -1,6 +1,6 @@
 # Status — where AskDocs actually is
 
-**Updated:** 2026-11-22, end of session. **Branch:** `main`, 25 commits (14 from this work), nothing pushed.
+**Updated:** 2026-11-22, end of session. **Branch:** `main`, 16 commits ahead of `origin/main` after merging 3 upstream commits from a Linux box (poppler 24.02) that fixed the same parser bug — see the merge commit `9bf087a`.
 **Corpus:** 11,069 chunks in `data/processed/`, 9,752 indexed (the eval-only CBDT FAQ is
 deliberately excluded), `corpus_hash f7683ce4b68b`.
 
@@ -66,15 +66,21 @@ Model comparison, all measured here (`docs/eval/latest.md`, README):
 Written down rather than guessed at; each one is a decision or an experiment for the
 next session.
 
-1. **Why does rerank hurt prompt coverage?** Measured, not explained. Hypotheses, in the
-   order I would test them:
-   - the cross-encoder (`ms-marco-MiniLM-L-6-v2`) is trained on web passages and may
-     prefer prose that *sounds* like an answer over statute that *is* the answer;
-   - our rerank input prefixes `Section — title — (document): text`, which I introduced
-     because it lifted hit@1 from 0.36 to 0.60 — it may also be inflating sections whose
-     titles echo the question (80CCE names "section 80C", which is exactly the q001 miss);
-   - section-level dedupe then keeps one chunk per section, so a demoted section loses
-     its only slot.
+1. ~~**Why does rerank hurt prompt coverage?**~~ **Answered 2026-11-23 — it is the
+   labelled input, and the fix is a trade, not a free win.** Measured by rerunning the
+   full set with `RERANK_LABEL=0`:
+
+   | rerank input | recall@10 | MRR@10 | hit@1 | prompt coverage |
+   |---|---|---|---|---|
+   | `Section — title — (document): text` | **0.89** | **0.69** | **0.60** | 0.83 |
+   | raw passage text | 0.86 | 0.53 | 0.37 | **0.86** |
+
+   So the prefix buys top-1 precision (hit@1 0.37 → 0.60, MRR 0.53 → 0.69) and pays
+   3 points of prompt coverage. Keeping the labelled default: the metric the product
+   leads with is *first* citation accuracy, which is driven by ranking, not by having
+   the right section somewhere in the six. The residual idea — rerank with labels for
+   order, then re-add any section that RRF ranked into its top six but rerank dropped —
+   is untested and is the next thing worth trying if citation accuracy stalls.
 2. **Widening the pool is untested — do not claim otherwise.** `RERANK_TOP_K=6` measures
    0.83 prompt coverage across two runs (`16-55` four-config, `16-57` single-config, same
    corpus and same questions). The `k=8` and `k=10` runs were interrupted before writing a

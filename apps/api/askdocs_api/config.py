@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     lexical_terms: int = Field(default=4, alias="LEXICAL_TERMS")
     rrf_k: int = Field(default=60, alias="RRF_K")
     rerank_candidates: int = Field(default=30, alias="RERANK_CANDIDATES")
+    rerank_label: bool = Field(default=True, alias="RERANK_LABEL")
     rerank_top_k: int = Field(default=6, alias="RERANK_TOP_K")
     refusal_score_threshold: float = Field(default=0.35, alias="REFUSAL_SCORE_THRESHOLD")
 
