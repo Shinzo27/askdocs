@@ -27,7 +27,8 @@ End-to-end, 10 questions, qwen2.5:3b-instruct:
 
 ```
 citation accuracy 0.80 (target 0.80) — reached 2026-11-23 by the RRF floor
-fact recall 0.30 (target 0.80)   first token p95 30.8 s (target 1.5 s)
+fact recall 0.30 (target 0.80)   first token p95 30.8 s (target 1.5 s, measured
+under CPU contention — see the latency note below)
 refusal correctness 0.90 (target 0.90) must-not-say violations 0
 first token p95 19.0 s (target 1.5 s)  end-to-end p95 31.9 s (target 6 s)
 ```
@@ -62,6 +63,14 @@ Model comparison, all measured here (`docs/eval/latest.md`, README):
    out of the six that reach the model 6 % more often than plain RRF would have. Whether
    widening the prompt recovers that is **not yet measured** (see open questions).
 
+## 4a. A contamination warning on today's latency numbers
+
+The 2026-11-23 runs happened while another project's dev servers (SyncStream, turbopack)
+were burning ~300% CPU and load average sat at 37. Every timing from that session — the
+30.8 s first-token p95 included — is an upper bound measured on a machine that was not
+idle. The 12.1 s figure from 2026-11-22 was taken with the box quiet. Re-measure on an
+idle machine before quoting either, and say which state the machine was in.
+
 ## 4. Open questions — the ones I could not close today
 
 Written down rather than guessed at; each one is a decision or an experiment for the
@@ -87,6 +96,13 @@ next session.
    correctness 0.95 -> 1.00, while changing no ranking metric. It is the default now.
    Prompt coverage rises 0.83 -> 0.86, not to RRF's 0.89 — the floor is bounded at
    three extra sources, so two misses survive.
+
+   **What it costs, measured:** 6 -> 9 sources per query and ~1,727 -> ~2,582 prompt
+   tokens (+50%, on all four questions sampled). That is a direct hit on the metric
+   already failing, which is the whole trade: the citation gate clears and first token
+   gets slower. On a hosted model 2.6 k tokens is cheap; here it is not. If latency ever
+   matters again, the cheap follow-up is to send floor-added sources truncated
+   (title + first ~200 chars) rather than in full.
 2. **Widening the pool is untested — do not claim otherwise.** `RERANK_TOP_K=6` measures
    0.83 prompt coverage across two runs (`16-55` four-config, `16-57` single-config, same
    corpus and same questions). The `k=8` and `k=10` runs were interrupted before writing a

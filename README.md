@@ -46,15 +46,25 @@ The grounded path works end to end: the answer streams, every claim carries a
 marker, unknown markers fail validation, and an unanswerable question is refused
 with a reason instead of guessed at. What does not work here is the model.
 
-| | qwen2.5:7b-instruct (documented default) | qwen2.5:3b-instruct (demo) | qwen2.5:1.5b-instruct |
+| | qwen2.5:7b-instruct (documented default) | qwen2.5:3b-instruct | qwen2.5:1.5b-instruct (demo) |
 |---|---|---|---|
 | generation | **4.6 tok/s** | 6.1 tok/s | 9.4 tok/s |
 | prompt processing | 35 tok/s | ~55 tok/s | 49 tok/s |
-| first token p95, 2.5 k-token context | ~70 s (est.) | 19.0 s | 12.1 s |
-| end-to-end p95 | — | 31.9 s | 22.1 s |
-| citation accuracy | not run to completion | **0.50** | **0.50** |
-| fact recall | — | 0.40 | 0.27 |
-| refusal correctness | — | 0.90 | 0.92 |
+| first token p95 | ~70 s (est.) | 19.0 s | 12.1 s → 30.8 s ᶜ |
+| end-to-end p95 | — | 31.9 s | 36.0 s |
+| citation accuracy | not run to completion | 0.50 ᵖ | **0.80** ✅ (n=10) |
+| fact recall | — | 0.40 ᵖ | 0.30 |
+| refusal correctness | — | 0.90 ᵖ | **1.00** |
+| over-refusals (in-corpus) | — | 2 ᵖ | **0** |
+
+ᵖ measured before the RRF floor landed (2026-11-23); the 3B re-run aborted after 3 of 6
+questions with a connection error and no report was written, so that row is stale rather
+than failed. The 1.5B row is the current one and clears the citation gate.
+
+ᶜ the second figure was measured while another project's dev servers were using ~300% CPU
+(load average 37). Treat it as an upper bound, not a like-for-like comparison — the floor
+does cost real prompt tokens (6 → 9 sources, ~1.7 k → ~2.6 k tokens), so some increase is
+expected and the exact number needs a quiet machine.
 
 Two conclusions, both measured rather than argued:
 
@@ -62,15 +72,20 @@ Two conclusions, both measured rather than argued:
    from 7B to 1.5B, but first token only halves — because the cost is *prompt
    processing* of a 2.5 k-token source block, not generation. No qwen2.5 size reaches a
    1.5 s first token here.
-2. **Citation accuracy is not a model problem.** It sits at 0.50 for both the 3B and
-   the 1.5B, and the misses are the same kind: §80CCE retrieved instead of §80C,
-   §129 instead of §80E. Weakening the model did not weaken the citations, because
-   retrieval is the binding constraint — which is also why the next fix is the
-   retriever's chunk granularity, not a bigger model.
+2. **Citation accuracy was not a model problem — it was the reranker, and it is now
+   fixed.** Weakening the model from 3B to 1.5B moved citation accuracy by zero, which
+   pointed at retrieval. The cause: RRF ranked the right section and the cross-encoder
+   dropped it before the prompt was assembled (prompt coverage 0.89 → 0.83). Keeping rerank's
+   *order* while re-admitting what RRF had already earned took citation accuracy from
+   0.70 to **0.80** at n=10 with no ranking metric changed — see the commit and
+   [`docs/STATUS.md`](docs/STATUS.md). What is left is **fact recall at 0.30**, which the
+   same change did not move at all: the model now gets the right section and still fails
+   to quote the clause inside it. That one is generation.
 
 An 8 GB M2 with a 4 GB Docker VM cannot run a 7B model and a Postgres + pgvector
-stack at once. The gate (`citation accuracy ≥ 0.80`, `first token ≤ 1.5 s`) is **not
-met locally**; reports: [`docs/eval/latest.md`](docs/eval/latest.md) and
+stack at once. Of the two gates, **citation accuracy ≥ 0.80 is met on the demo model**
+and **first token ≤ 1.5 s is not met locally and cannot be** — that needs a hosted key or
+a GPU, which are config changes, not code; reports: [`docs/eval/latest.md`](docs/eval/latest.md) and
 [`docs/eval/failures.md`](docs/eval/failures.md).
 
 ### Corpus (measured, not estimated)
