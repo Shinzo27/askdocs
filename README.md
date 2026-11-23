@@ -156,7 +156,7 @@ python scripts/doctor.py         # environment + corpus integrity; must print RE
 The only external dependency is poppler's `pdftotext` binary (`winget install oschwartz10612.Poppler` on Windows, `apt install poppler-utils` on Debian). Pipeline dependencies are pinned in `requirements-dev.txt` from Week 1, when the retrieval and eval code lands.
 
 
-The raw corpus is deliberately **not** committed: 16 MB of government PDFs and a 10 MB chunk file do not belong in git. `data/raw/` and `data/processed/` are gitignored; `data/sources.json` records where every file came from and the SHA-verified byte size.
+The raw corpus is deliberately **not** committed: 28 MB of government PDFs and a 12 MB chunk file do not belong in git. `data/raw/` and `data/processed/` are gitignored; `data/sources.json` records where every file came from and the SHA-verified byte size.
 
 The application stack (`docker compose up`) arrives in Week 1 — this README will grow a one-command path once there is something to run.
 
@@ -173,7 +173,7 @@ Switching laptops, or switching agent, should not change the answers. Four thing
 | `scripts/doctor.py` — interpreter, poppler, per-document hashes, pinned chunk counts, `corpus_hash` | "it works on my machine"; a parser tweak that shrinks the corpus |
 | [`design-system/askdocs/MASTER.md`](design-system/askdocs/MASTER.md) — persisted design system, page overrides in `pages/` | each new session inventing a different UI |
 
-The corpus is 20 MB of government PDFs, deliberately **not** committed, so the bootstrap is `fetch → ingest → doctor`, and `doctor` is the gate: it fails loudly rather than letting a partial corpus be cited from.
+The corpus is 28 MB of government PDFs, deliberately **not** committed, so the bootstrap is `fetch → ingest → doctor`, and `doctor` is the gate: it fails loudly rather than letting a partial corpus be cited from.
 
 ## How quality is decided
 

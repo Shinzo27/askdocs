@@ -18,7 +18,7 @@ Short ADRs. Each records the option that was rejected, because that is the part 
 
 **Decision.** One Postgres instance holds vectors, full-text index and product data.
 
-**Why.** The workload is 6.6 k chunks — three orders of magnitude below where HNSW tuning becomes a problem. A second datastore would add a deployment, a backup policy and a consistency bug (chunk deleted from one store, alive in the other) in exchange for latency nobody would notice.
+**Why.** The workload is ~11 k chunks — three orders of magnitude below where HNSW tuning becomes a problem. A second datastore would add a deployment, a backup policy and a consistency bug (chunk deleted from one store, alive in the other) in exchange for latency nobody would notice.
 
 **Rejected.** Qdrant/Weaviate/Pinecone: operationally heavier, and none of them solves the actual hard part (hybrid fusion + rerank).
 
@@ -108,7 +108,9 @@ Short ADRs. Each records the option that was rejected, because that is the part 
 - a front-matter bound on TOC detection re-admitted the 1961 Act's trailing index (+76 chunks of junk);
 - schedules defaulting to the preceding section made every deduction table cite "Section 536 — Repeal and savings", fixed by emitting `SCHEDULE I`…`XVI` as their own sections.
 
-The four original documents now have an asserted chunk count (3,852 / 579 / 889 / 1,317), so any of these regressions fails a test instead of quietly shrinking the corpus.
+Every document now has an asserted chunk count (`PIN_SETS` in `scripts/doctor.py`, exercised by `tests/test_doctor.py`), so any of these regressions fails a test instead of quietly shrinking the corpus.
+
+**Pins are per poppler build (added 2026-11-23).** The first clean-machine test on Linux (poppler 24.02) parsed the 1961 Act to 426 sections instead of ~705: that build lifts the footnote superscript of `4[80C.` onto the line above, leaving `[80C.`, which the header regex rejected. The regex now accepts a bare `[`, which restores 713 sections, but chunk counts still differ by a few per document between builds because whitespace and line breaks differ. So `stats.json` records `pdftotext_version`, and `doctor.py` checks the counts against that build's pin set. A new set is added only after spot checks, never by editing an existing one, and `corpus_hash` is quoted together with the poppler version.
 
 **Fourth bug, found on a different machine (2026-11-22).** The same PDFs, the same parser, a newer poppler — and 80C disappeared. poppler 26.11.0 lifts the amendment footnote digit onto its own line, so the header reads `[80C.` where the pattern expected `4[80C.`; 279 sections of the 1961 Act lost their anchor and were absorbed by the section above them. Two lessons, both now encoded: the extractor is part of the corpus provenance (`stats.json` records the version, `doctor.py` compares it to the pin and warns instead of silently failing a sound corpus), and "the parser is unchanged" is not the same claim as "the output is unchanged". Recovery raised the 1961 count from 705 to 768 section keys — the pins moved *up*.
 

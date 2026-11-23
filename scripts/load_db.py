@@ -182,7 +182,7 @@ def main() -> int:
                     )
                 )
 
-        extractor = meta["stats"].get("extractor", {}).get("pdftotext")
+        extractor = meta["stats"].get("pdftotext_version")
         for key, value in (
             ("corpus_hash", chash),
             ("extractor", extractor or ""),

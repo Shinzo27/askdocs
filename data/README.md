@@ -30,7 +30,7 @@ A snapshot is not the live page: the Act text is the official consolidated text 
 
 ## Rebuilding the corpus on another machine
 
-`data/raw/` and `data/processed/` are gitignored: 20 MB of PDFs and a 9 MB chunk file are regenerable, and the FAQ mirror is not ours to redistribute. So a fresh clone has no corpus, and the bootstrap is three commands:
+`data/raw/` and `data/processed/` are gitignored: 28 MB of PDFs and a 12 MB chunk file are regenerable, and the FAQ mirror is not ours to redistribute. So a fresh clone has no corpus, and the bootstrap is three commands:
 
 ```bash
 python scripts/fetch_corpus.py   # live URL first, Wayback snapshot as fallback, SHA-256 verified
@@ -41,6 +41,8 @@ python scripts/doctor.py         # interpreter, poppler, per-document hashes, pi
 `fetch_corpus.py` reads `data/manifest.json`, so it knows which route each document needs; it resumes truncated Wayback transfers with HTTP Range requests. One document cannot be automated: the **CBDT FAQ CSV** has no stable file URL — the manifest marks it `"acquire": "manual"` with a hint, and `doctor.py` treats its absence as a warning rather than a blocker, because it is eval-only and never shipped.
 
 `doctor.py` prints the `corpus_hash` — quote it in every eval report. Numbers from different corpora are not comparable.
+
+**Poppler builds differ.** The same hash-verified PDFs give slightly different text under different `pdftotext` builds, so chunk counts (and `corpus_hash`) are pinned **per build**: `ingest.py` records `pdftotext_version` in `stats.json`, and `doctor.py` checks it against that build's entry in `PIN_SETS`. Pinned today: the author's Windows build (version not recorded; 11,080 chunks) and poppler 24.02.0 on Ubuntu 24.04 (11,091 with the FAQ, 9,774 without). The headline counts in this file are from the Windows build. A build with no pin set fails `doctor.py` until its output has been spot-checked and a set added.
 
 ## Adding a document
 

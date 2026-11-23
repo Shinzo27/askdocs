@@ -39,8 +39,12 @@ def test_chunk_counts_match_pins(stats: dict) -> None:
 
 
 def test_extractor_recorded(stats: dict) -> None:
-    """Counts are only comparable inside one extraction binary."""
-    assert stats["extractor"]["pdftotext"], "extractor version missing from stats.json"
+    """Counts are only comparable inside one extraction binary.
+
+    `pdftotext_version` is the single key `doctor.py` uses to select a pin set, so
+    a corpus without it cannot be validated at all.
+    """
+    assert stats.get("pdftotext_version"), "pdftotext version missing from stats.json"
 
 
 def test_every_document_declares_a_vintage(stats: dict) -> None:
