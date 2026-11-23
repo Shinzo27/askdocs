@@ -1,0 +1,254 @@
+{
+  "run": {
+    "timestamp": "2026-11-23T18:16:17.585727+00:00",
+    "provider": "ollama",
+    "model": "qwen2.5-1.5b-promote",
+    "prompt_version": "31926134",
+    "corpus_hash": "f7683ce4b68b5dd4392b5aa9e3505daad9a580f73c2e98fb3f11ef411d1450c9",
+    "questions": 6,
+    "scored": 6,
+    "citation_accuracy": 0.6667,
+    "fact_recall": 0.2727,
+    "must_not_say_violations": 0,
+    "refusal_correctness": 0.9167,
+    "out_of_corpus_refused": 1.0,
+    "over_refusals": 1,
+    "errors": 0,
+    "p50_total_ms": 54702.0,
+    "p95_total_ms": 59218,
+    "p95_first_token_ms": 48565,
+    "cost_inr_per_query": 0.0
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "deduction",
+      "question": "How much can I deduct under section 80C for my child's tuition fees?",
+      "expected": [
+        "80C"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [],
+      "citation_ok": false,
+      "refused": true,
+      "reason": "low_score",
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "tuition fees are among the sums eligible under 80C",
+        "the 80C ceiling is one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 8477,
+        "rerank": 3231,
+        "first_token": 12621,
+        "total": 12621
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "I can't verify this from the documents I have: the closest passages were not relevant enough to answer from.\n\nThe closest sections were about a different subject. Rephrasing with a section number, or a term the statute actually uses, usually works.\n"
+    },
+    {
+      "id": "q002",
+      "category": "deduction",
+      "question": "What is the maximum deduction available under section 80C in a financial year?",
+      "expected": [
+        "80C",
+        "80CCE"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80C",
+          "section_title": "Deduction in respect of life insurance premia, deferred annuity, contributions to",
+          "chapter": "VI",
+          "page": 330,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 1.6541
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "one hundred and fifty thousand rupees"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 3375,
+        "rerank": 861,
+        "first_token": 23518,
+        "total": 29758
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "The maximum deduction available under section 80C in a financial year is 500,000 rupees. This amount is subject to the condition that it does not exceed 50% of the gross total income of the assessee for the relevant assessment year. [1]"
+    },
+    {
+      "id": "q003",
+      "category": "deduction",
+      "question": "What is the deduction limit for health insurance premia under section 80D?",
+      "expected": [
+        "80D"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80D",
+          "section_title": "Deduction in respect of health insurance premia.—(1) In computing the total income of an",
+          "chapter": "VI",
+          "page": 341,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 5.1798
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "twenty-five thousand rupees for self and family",
+        "fifty thousand rupees where the insured is a senior citizen"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 59,
+        "rerank": 2388,
+        "first_token": 46691,
+        "total": 53067
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "The deduction limit for health insurance premia under section 80D is specified in Section 80D of the Income-tax Act, 1961, as amended by Finance Act, 2021. According to the passage, the deduction limit is twenty-five thousand rupees. [1]"
+    },
+    {
+      "id": "q004",
+      "category": "deduction",
+      "question": "How much can I contribute to the National Pension System and claim under section 80CCD?",
+      "expected": [
+        "80CCD"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80CCD",
+          "section_title": "Deduction in respect of contribution to pension scheme of Central Government.—(1)",
+          "chapter": "VI",
+          "page": 338,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 0.9379
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "the deduction is for contributions to a pension scheme notified by the Central Government"
+      ],
+      "missing_facts": [
+        "an employee may deduct ten per cent of salary"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 409,
+        "rerank": 3923,
+        "first_token": 45540,
+        "total": 56337
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "According to Section 80CCD of the Income-tax Act, 1961, an individual who is employed by the Central Government or any other employer can contribute to a pension scheme notified by the Central Government and claim a deduction in the computation of their total income. The maximum amount that can be deducted is 10% of their salary in the previous year, not exceeding 300,000 rupees. [1]"
+    },
+    {
+      "id": "q005",
+      "category": "deduction",
+      "question": "Can I claim a deduction for interest paid on an education loan, and for how long?",
+      "expected": [
+        "80E"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-2025",
+          "section": "129",
+          "section_title": "Deduction in respect of interest on loan taken for higher education",
+          "chapter": "VIII",
+          "page": 191,
+          "vintage": "Act No. 30 of 2025, as amended by Finance Act, 2026",
+          "rerank_score": 2.0396
+        }
+      ],
+      "citation_ok": false,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [
+        "interest on a loan for higher education",
+        "eight assessment years"
+      ],
+      "missing_facts": [],
+      "violated": [],
+      "latency": {
+        "retrieve": 393,
+        "rerank": 4069,
+        "first_token": 50706,
+        "total": 63949
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "Yes, you can claim a deduction for interest paid on an education loan, as per Section 80E of the Income-tax Act, 1961 [1]. The deduction is allowed in the initial assessment year and seven subsequent years, or until the interest is fully paid, whichever is earlier. The deduction is based on the payment made out of income chargeable to tax, and the conditions include the loan being taken from a financial institution or an approved charitable institution for higher education or the education of a relative. The maximum limit for the deduction is 50,000 rupees."
+    },
+    {
+      "id": "q006",
+      "category": "deduction",
+      "question": "I get no HRA from my employer. What rent deduction can I claim under section 80GG?",
+      "expected": [
+        "80GG"
+      ],
+      "expected_doc": "it-act-1961",
+      "cited": [
+        {
+          "marker": 1,
+          "doc_id": "it-act-1961",
+          "section": "80GG",
+          "section_title": "Deductions in respect of rents paid.—In computing the total income of an assessee, not",
+          "chapter": "VI",
+          "page": 354,
+          "vintage": "consolidated up to Finance Act, 2021",
+          "rerank_score": 1.2464
+        }
+      ],
+      "citation_ok": true,
+      "refused": false,
+      "reason": null,
+      "citation_valid": true,
+      "matched_facts": [],
+      "missing_facts": [
+        "five thousand rupees per month",
+        "or twenty-five per cent of total income, whichever is less"
+      ],
+      "violated": [],
+      "latency": {
+        "retrieve": 422,
+        "rerank": 4783,
+        "first_token": 48565,
+        "total": 59218
+      },
+      "cost_inr": 0.0,
+      "error": null,
+      "answer": "You can claim a deduction for rent paid in excess of ten percent of your total income under Section 80GG of the Income-tax Act, 1961. This deduction is subject to the conditions that the excess expenditure does not exceed 25% of your total income or 5,000 rupees per month, whichever is less. The deduction is allowed for residential accommodation occupied for personal residence purposes. [1]"
+    }
+  ]
+}

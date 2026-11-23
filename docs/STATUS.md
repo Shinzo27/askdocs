@@ -130,6 +130,30 @@ next session.
    shows `apps/ (Week 1+)`). The file is protected — my writes timed out awaiting
    approval — so it needs a manual edit or an explicit OK.
 
+## 4a2. q001 is not retrieval, and the fix I tried did not work
+
+Per-question misses from the floor A/B (n=6) are the useful detail, not the aggregate:
+
+| arm | citation misses |
+|---|---|
+| floor off | q001 (cited 80CCE), q002 (cited nothing), q005 (cited 129) |
+| floor on | q001 (cited 80CCE), q005 (cited 129) |
+
+So the floor fixed exactly one thing: the question that cited *nothing*. It did not touch
+q001, where §80C **was in the prompt at rank 2** and the model still picked §80CCE — the
+ceiling section whose title literally contains "80C". That is citation selection at
+generation time, not retrieval, and it is the single biggest remaining citation error.
+
+**Tried and rejected (2026-11-23):** reordering sources so a section the question names by
+number goes first (`promote_named_sections`, with unit tests). At n=6 it left citation
+accuracy at 0.67 and changed q001 from "cited 80CCE" to "cited nothing", while over-refusals
+went 0 -> 1 and refusal correctness 1.00 -> 0.92. The trade is wrong-citation -> refusal,
+which is defensible in principle, but it wins no metric and costs the refusal gate that was
+passing, so the code was removed rather than kept as a neutral change. It was reverted
+before commit, so there is nothing in the history to find: the evidence is the e2e report
+`eval/reports/2026-11-23T18-16-e2e.md` (`qwen2.5-1.5b-promote`) and this table. Do not
+re-add it without a plan for the refusal regression.
+
 ## 4b. The floor's own failure mode, seen in real output
 
 `/search "80C tuition fees"` with the floor on returns nine sources, and three of them are
