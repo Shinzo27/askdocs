@@ -18,7 +18,7 @@ Short ADRs. Each records the option that was rejected, because that is the part 
 
 **Decision.** One Postgres instance holds vectors, full-text index and product data.
 
-**Why.** The workload is 6.6 k chunks — three orders of magnitude below where HNSW tuning becomes a problem. A second datastore would add a deployment, a backup policy and a consistency bug (chunk deleted from one store, alive in the other) in exchange for latency nobody would notice.
+**Why.** The workload is ~11 k chunks — three orders of magnitude below where HNSW tuning becomes a problem. A second datastore would add a deployment, a backup policy and a consistency bug (chunk deleted from one store, alive in the other) in exchange for latency nobody would notice.
 
 **Rejected.** Qdrant/Weaviate/Pinecone: operationally heavier, and none of them solves the actual hard part (hybrid fusion + rerank).
 

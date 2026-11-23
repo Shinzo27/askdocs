@@ -30,7 +30,7 @@ A snapshot is not the live page: the Act text is the official consolidated text 
 
 ## Rebuilding the corpus on another machine
 
-`data/raw/` and `data/processed/` are gitignored: 20 MB of PDFs and a 9 MB chunk file are regenerable, and the FAQ mirror is not ours to redistribute. So a fresh clone has no corpus, and the bootstrap is three commands:
+`data/raw/` and `data/processed/` are gitignored: 28 MB of PDFs and a 12 MB chunk file are regenerable, and the FAQ mirror is not ours to redistribute. So a fresh clone has no corpus, and the bootstrap is three commands:
 
 ```bash
 python scripts/fetch_corpus.py   # live URL first, Wayback snapshot as fallback, SHA-256 verified

@@ -4,7 +4,7 @@
 
 **Provenance.** Generated with **UI UX Pro Max v2.0** (`--design-system --persist --tokens dtcg`, query: *"legal tax document research assistant citations chat trustworthy minimal serif"*, 2026-11-21), then **curated by hand**: the palette and type pairing were kept, the generator's generic "newsletter / content-first" page pattern was rejected, and the surfaces below were written for this product. Regeneration discards curation — it needs explicit approval and a diff review.
 
-**Tokens.** `tokens.json` (W3C DTCG) is the machine-readable source for colour. Add `--font-mono` there on the next regeneration; it is a repo addition, not a generated value.
+**Tokens.** `tokens.json` (W3C DTCG) is the machine-readable source for colour and font families. `font.mono` is a repo addition, not a generated value; keep it when regenerating.
 
 ---
 

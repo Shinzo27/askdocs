@@ -17,7 +17,8 @@ Parked deliberately so they do not delay a measured v1. Each entry names the sig
 
 ## Known gaps (documented, not hidden)
 
-- Income-tax Act, 2025 and Rules, 2026 are not in the corpus until the Week 1 drop. Until then every answer carries the `AY ≤ 2026-27` banner.
+- Income-tax Act, 2025: 27 of 536 sections (23 on poppler 24.02) match neither header signal and stay attached to the preceding section; they are reported as `sections_unparsed` and excluded from the golden set. Font-level (bold span) extraction would recover them.
+- On the 1961 Act and the CGST documents, some amendment footnotes (`1. Subs. by Act 25 of 2014…`) are parsed as section headers, so a few chunks carry a footnote line as `section_title`. Pre-existing on every poppler build; fixing it changes the pinned counts, so it needs its own measured change.
 - CBDT circulars are missing — "why" questions can only be answered from statute text and FAQs.
 - The Income-tax Act, 1961 copy is consolidated to Finance Act 2021, so post-2021 amendments are not reflected. This is the largest accuracy risk in the project and the reason vintages are stored per document.
 - Page numbers are only as stable as the PDF revision; sections are the primary citation key and pages are the hint.
