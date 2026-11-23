@@ -154,6 +154,24 @@ before commit, so there is nothing in the history to find: the evidence is the e
 `eval/reports/2026-11-23T18-16-e2e.md` (`qwen2.5-1.5b-promote`) and this table. Do not
 re-add it without a plan for the refusal regression.
 
+## 4a3. Why the 3B numbers are still stale: my own harness collided with itself
+
+The 3B re-run failed twice with different errors — `JSONDecodeError: Expecting value:
+line 1 column 1` once and `httpx.ConnectError` once. Neither was the model and neither
+was memory. All eval scripts started the API on **port 8000** and ended with
+`pkill -f "uvicorn askdocs_api.main:app"`, and I ran two of them concurrently: the n=10
+floor sweep killed the 3B job's server mid-question, and the 3B job killed the sweep's.
+
+Rules for any future eval run, learned the hard way:
+1. **One eval at a time.** These runs share a model process and a machine; concurrency
+   corrupts timing even when it does not corrupt the numbers.
+2. **Unique port per run** (`--base-url` is already parameterised; use 8123+).
+3. **Kill by PID, not by pattern.** `pkill -f uvicorn` reaches into every other session's
+   server, including ones you cannot see.
+
+Every timing in this file from the 2026-11-23 session also carries the CPU-contention
+caveat above, so treat the numbers as directionally right and the timings as upper bounds.
+
 ## 4b. The floor's own failure mode, seen in real output
 
 `/search "80C tuition fees"` with the floor on returns nine sources, and three of them are
