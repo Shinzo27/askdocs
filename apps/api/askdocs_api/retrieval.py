@@ -326,6 +326,39 @@ def dedupe_by_section(
     return chosen
 
 
+def apply_rrf_floor(
+    selected: list[Candidate], fused: list[Candidate], top_k: int, slots: int
+) -> list[Candidate]:
+    """Re-admit sections RRF ranked highly that the cross-encoder dropped.
+
+    RRF is the recall stage and the cross-encoder is the precision stage, but the
+    reranker can delete the right section outright - prompt coverage fell from 0.89
+    (RRF alone) to 0.83 with rerank. The floor keeps rerank's *order* and only
+    restores what RRF had already earned, appending at most `slots` extra sources so
+    the prompt cannot grow without bound. Sections are compared by (doc_id, section)
+    because "section 80C" exists in more than one instrument.
+
+    Disabled when slots is 0, which is what RERANK_RRF_FLOOR=0 does.
+    """
+    if slots <= 0:
+        return selected
+    have = {(c.doc_id, c.section) for c in selected}
+    floor_sections: list[tuple[str, str]] = []
+    for candidate in fused:
+        key = (candidate.doc_id, candidate.section)
+        if key not in have:
+            floor_sections.append(key)
+            have.add(key)
+        if len(floor_sections) == slots:
+            break
+    if not floor_sections:
+        return selected
+    wanted = set(floor_sections)
+    additions = [c for c in fused if (c.doc_id, c.section) in wanted]
+    # keep fused order (RRF rank), then the rerank order for everything else
+    return [*selected, *additions[:slots]]
+
+
 async def retrieve(
     session: AsyncSession,
     query: str,
@@ -368,10 +401,14 @@ async def retrieve(
         ordered = fused
     rerank_ms = int((time.perf_counter() - rerank_started) * 1000)
 
+    selected = dedupe_by_section(ordered, top_k)
+    if use_rerank and settings.rerank_rrf_floor:
+        selected = apply_rrf_floor(selected, fused, top_k, settings.rerank_floor_slots)
+
     return RetrievalResult(
         candidates=fused,
         reranked=ordered,
-        selected=dedupe_by_section(ordered, top_k),
+        selected=selected,
         fused_count=len(fused),
         retrieval_ms=retrieval_ms,
         rerank_ms=rerank_ms,

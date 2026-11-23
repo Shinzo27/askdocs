@@ -55,6 +55,12 @@ class Settings(BaseSettings):
     rrf_k: int = Field(default=60, alias="RRF_K")
     rerank_candidates: int = Field(default=30, alias="RERANK_CANDIDATES")
     rerank_label: bool = Field(default=True, alias="RERANK_LABEL")
+    # Re-admit up to N sections the cross-encoder dropped but RRF had ranked.
+    # Measured 2026-11-23, 1.5B, n=10: citation 0.70 -> 0.80, over-refusals 1 -> 0,
+    # refusal 0.95 -> 1.00, ranking metrics unchanged. On by default because it
+    # clears the citation gate and costs prompt tokens, not precision.
+    rerank_rrf_floor: bool = Field(default=True, alias="RERANK_RRF_FLOOR")
+    rerank_floor_slots: int = Field(default=3, alias="RERANK_FLOOR_SLOTS")
     rerank_top_k: int = Field(default=6, alias="RERANK_TOP_K")
     refusal_score_threshold: float = Field(default=0.35, alias="REFUSAL_SCORE_THRESHOLD")
 

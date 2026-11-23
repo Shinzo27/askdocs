@@ -26,7 +26,8 @@ yet where it needs to be. Read this before the next session, then `docs/PLAN.md`
 End-to-end, 10 questions, qwen2.5:3b-instruct:
 
 ```
-citation accuracy 0.50 (target 0.80)   fact recall 0.40 (target 0.80)
+citation accuracy 0.80 (target 0.80) — reached 2026-11-23 by the RRF floor
+fact recall 0.30 (target 0.80)   first token p95 30.8 s (target 1.5 s)
 refusal correctness 0.90 (target 0.90) must-not-say violations 0
 first token p95 19.0 s (target 1.5 s)  end-to-end p95 31.9 s (target 6 s)
 ```
@@ -80,7 +81,12 @@ next session.
    leads with is *first* citation accuracy, which is driven by ranking, not by having
    the right section somewhere in the six. The residual idea — rerank with labels for
    order, then re-add any section that RRF ranked into its top six but rerank dropped —
-   is untested and is the next thing worth trying if citation accuracy stalls.
+   was tested the same day and **worked**: `RERANK_RRF_FLOOR=1 RERANK_FLOOR_SLOTS=3`
+   re-admits what RRF ranked but rerank dropped, and moved citation accuracy from
+   0.70 to 0.80 at n=10 (0.50 -> 0.67 at n=6) with over-refusals 1 -> 0 and refusal
+   correctness 0.95 -> 1.00, while changing no ranking metric. It is the default now.
+   Prompt coverage rises 0.83 -> 0.86, not to RRF's 0.89 — the floor is bounded at
+   three extra sources, so two misses survive.
 2. **Widening the pool is untested — do not claim otherwise.** `RERANK_TOP_K=6` measures
    0.83 prompt coverage across two runs (`16-55` four-config, `16-57` single-config, same
    corpus and same questions). The `k=8` and `k=10` runs were interrupted before writing a
@@ -88,7 +94,11 @@ next session.
    measures 0.83 too" — that was comparing two k=6 runs and it was wrong. If widening
    turns out not to help, the loss is ordering rather than truncation, which points at
    hypothesis 2; if it does help, the fix is a bigger prompt and more latency.
-3. **Is the 0.50 citation ceiling retrieval or generation?** Both 3B and 1.5B score 0.50
+3. **Is the 0.50 citation ceiling retrieval or generation?** *Partly answered:* it was
+   retrieval for the citation metric — feeding the model the sections RRF already found
+   lifted citation to 0.80 without touching the prompt or the model. What remains is
+   fact recall at 0.30, which the floor did not move at all, and that one is generation.
+   Original framing: both 3B and 1.5B scored 0.50
    with identical failure shapes, so it looks like retrieval. But it is not proven that a
    perfect prompt would lift a 1.5B model to 0.80 — worth one run with the echo
    generator (which cites everything it is given) as an upper bound on what the prompt
