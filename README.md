@@ -52,14 +52,18 @@ with a reason instead of guessed at. What does not work here is the model.
 | prompt processing | 35 tok/s | ~55 tok/s | 49 tok/s |
 | first token p95 | ~70 s (est.) | 19.0 s | 12.1 s → 30.8 s ᶜ |
 | end-to-end p95 | — | 31.9 s | 36.0 s |
-| citation accuracy | not run to completion | 0.50 ᵖ | **0.80** ✅ (n=10) |
-| fact recall | — | 0.40 ᵖ | 0.30 |
-| refusal correctness | — | 0.90 ᵖ | **1.00** |
-| over-refusals (in-corpus) | — | 2 ᵖ | **0** |
+| citation accuracy (n=6, floor on) | not run | 0.50 | **0.67** |
+| fact recall (n=6) | — | 0.27 | 0.27 |
+| refusal correctness (n=6) | — | 0.83 ❌ | **1.00** |
+| over-refusals (in-corpus) | — | 2 ❌ | **0** |
+| citation accuracy (n=10, floor on) | — | not run | **0.80** ✅ |
 
-ᵖ measured before the RRF floor landed (2026-11-23); the 3B re-run aborted after 3 of 6
-questions with a connection error and no report was written, so that row is stale rather
-than failed. The 1.5B row is the current one and clears the citation gate.
+**The 3B is not an upgrade — it is the worst arm measured.** At identical settings and the
+same 6 questions it scores 0.50 against the 1.5B's 0.67, fails refusal correctness (0.83),
+over-refuses twice, and all three of its citation misses are *"cited nothing"* rather than
+"cited the wrong section": it stops answering instead of answering wrongly. The demo model
+stays 1.5B. Earlier 3B numbers (0.50 / 0.40) came from a run whose API was killed mid-flight
+by a port collision with another eval job — see `docs/STATUS.md §4a3` — and are superseded.
 
 ᶜ the second figure was measured while another project's dev servers were using ~300% CPU
 (load average 37). Treat it as an upper bound, not a like-for-like comparison — the floor

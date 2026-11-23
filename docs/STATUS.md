@@ -38,8 +38,8 @@ Model comparison, all measured here (`docs/eval/latest.md`, README):
 | model | gen tok/s | prompt tok/s | first token p95 | citation acc | fact recall |
 |---|---|---|---|---|---|
 | 7B | 4.6 | 35 | ~70 s | not run to completion | — |
-| 3B | 6.1 | 55 | 19.0 s | 0.50 | 0.40 |
-| 1.5B | 9.4 | 49 | 12.1 s | 0.50 | 0.27 |
+| 3B (isolated re-run, floor on, n=6) | 6.1 | 55 | 101.3 s ᶜ | **0.50** | 0.27 |
+| 1.5B (floor on, n=6) | 9.4 | 49 | 12.1 s / 30.8 s ᶜ | **0.67** | 0.27 |
 
 ## 3. The three findings that shaped the work
 
@@ -110,7 +110,14 @@ next session.
    measures 0.83 too" — that was comparing two k=6 runs and it was wrong. If widening
    turns out not to help, the loss is ordering rather than truncation, which points at
    hypothesis 2; if it does help, the fix is a bigger prompt and more latency.
-3. **Is the 0.50 citation ceiling retrieval or generation?** *Partly answered:* it was
+3. **Is the 3B better than the 1.5B?** No, and this was measured cleanly on 2026-11-23 after
+   the port-collision bug was fixed: at identical settings and the same 6 questions the 3B
+   scores 0.50 against 0.67, fails refusal correctness (0.83 vs 1.00), over-refuses twice,
+   and all three of its citation misses are "cited nothing" rather than "cited wrongly". A
+   model that goes quiet is not safer here; it fails the product's promise just as hard as a
+   confident wrong answer, and the demo model stays 1.5B.
+
+4. **Is the 0.50 citation ceiling retrieval or generation?** *Partly answered:* it was
    retrieval for the citation metric — feeding the model the sections RRF already found
    lifted citation to 0.80 without touching the prompt or the model. What remains is
    fact recall at 0.30, which the floor did not move at all, and that one is generation.
