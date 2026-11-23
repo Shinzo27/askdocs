@@ -130,6 +130,26 @@ next session.
    shows `apps/ (Week 1+)`). The file is protected — my writes timed out awaiting
    approval — so it needs a manual edit or an explicit OK.
 
+## 4b. The floor's own failure mode, seen in real output
+
+`/search "80C tuition fees"` with the floor on returns nine sources, and three of them are
+junk: `it-act-1961 §5`, `§3`, `§8`, `§4` — and, worse, `cgst-rules-2017 §15` and `§14`, GST
+procedural rules in an income-tax answer. That is the floor doing exactly what it was told:
+re-admit what RRF ranked, and RRF's tail is noise (recall@10 0.77 against rerank's 0.89).
+
+So the floor buys citation accuracy by injecting distractors, and cgst-rules-2017 in a 1961-Act
+prompt is the kind of source a wrong-but-confident answer is built from. It has not shown up as
+a must-not-say violation yet (0 in both arms), but it is one bad model away from being one.
+
+The fix to try next, in order:
+1. **Doc consistency:** only re-admit a floor section from the same `doc_id` as the reranked
+   top-1, or one that `infer_doc_scope` allows. Cheapest, and it alone would have excluded both
+   GST sections above.
+2. **RRF score floor:** require the addition's RRF score ≥ 0.6 × the best RRF score, so the tail
+   needs to be reasonably ranked to earn a slot.
+3. Both, then re-run the n=10 citation comparison — anything that touches the floor must
+   re-measure 0.80, because it currently passes and a refinement can quietly lose that.
+
 ## 5. How to resume
 
 ```bash
