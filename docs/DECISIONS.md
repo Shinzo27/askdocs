@@ -108,7 +108,9 @@ Short ADRs. Each records the option that was rejected, because that is the part 
 - a front-matter bound on TOC detection re-admitted the 1961 Act's trailing index (+76 chunks of junk);
 - schedules defaulting to the preceding section made every deduction table cite "Section 536 — Repeal and savings", fixed by emitting `SCHEDULE I`…`XVI` as their own sections.
 
-The four original documents now have an asserted chunk count (3,868 / 578 / 863 / 1,317), so any of these regressions fails a test instead of quietly shrinking the corpus.
+Every document now has an asserted chunk count (`PIN_SETS` in `scripts/doctor.py`, exercised by `tests/test_doctor.py`), so any of these regressions fails a test instead of quietly shrinking the corpus.
+
+**Pins are per poppler build (added 2026-11-23).** The first clean-machine test on Linux (poppler 24.02) parsed the 1961 Act to 426 sections instead of ~705: that build lifts the footnote superscript of `4[80C.` onto the line above, leaving `[80C.`, which the header regex rejected. The regex now accepts a bare `[`, which restores 713 sections, but chunk counts still differ by a few per document between builds because whitespace and line breaks differ. So `stats.json` records `pdftotext_version`, and `doctor.py` checks the counts against that build's pin set. A new set is added only after spot checks, never by editing an existing one, and `corpus_hash` is quoted together with the poppler version.
 
 **Honest residual.** 27 of 536 sections in the 2025 Act match neither header signal; they stay attached to the preceding section, are reported as `sections_unparsed`, and are excluded from the golden set. Fixing them means font-level extraction (bold spans), which is a Week 2 problem at the earliest — a section count that is 95 % right and honestly reported beats a parser that lies.
 
