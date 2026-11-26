@@ -48,7 +48,8 @@ def embed_passages(texts: list[str], batch_size: int = 32) -> np.ndarray:
 def embed_query(text: str) -> np.ndarray:
     """bge-small is trained with this instruction prefix on the query side only."""
     prefix = "Represent this sentence for searching relevant passages: "
-    return embed_passages([prefix + text])[0]
+    vectors = embed_passages([prefix + text])
+    return np.asarray(vectors[0], dtype=np.float32)
 
 
 def text_hash(text: str) -> str:

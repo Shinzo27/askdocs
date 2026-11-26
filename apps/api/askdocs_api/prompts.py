@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 PROMPT_DIR = Path(__file__).resolve().parent.parent / "prompts"
 GROUNDED = "grounded-v3"
@@ -66,7 +67,7 @@ def prompt_version(name: str) -> str:
     return hashlib.sha256(read_prompt(name).encode("utf-8")).hexdigest()[:8]
 
 
-def build_sources(candidates: list) -> list[Source]:
+def build_sources(candidates: list[Any]) -> list[Source]:
     """Number the selected candidates in rerank order, 1-based."""
     return [
         Source(

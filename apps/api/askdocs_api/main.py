@@ -279,7 +279,7 @@ def create_app() -> FastAPI:
                 .where(Chunk.section.is_not(None))
             )
         ).scalar_one()
-        unparsed = dict(
+        unparsed: dict[str, int | None] = dict(
             (
                 await session.execute(
                     text("SELECT doc_id, sections_unparsed FROM documents")

@@ -343,7 +343,7 @@ def apply_rrf_floor(
     if slots <= 0:
         return selected
     have = {(c.doc_id, c.section) for c in selected}
-    floor_sections: list[tuple[str, str]] = []
+    floor_sections: list[tuple[str, str | None]] = []
     for candidate in fused:
         key = (candidate.doc_id, candidate.section)
         if key not in have:
