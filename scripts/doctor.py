@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -60,6 +61,15 @@ PIN_SETS: tuple[dict, ...] = (
                    "cgst-act-2017": 579, "cgst-rules-2017": 889, "faq-cbdt": FAQ_CHUNKS},
     },
     {
+        "pdftotext": "26.09.0",
+        "label": "poppler 26.09.0 (winget, Windows x64), 2026-11-23",
+        # Byte-identical extraction to the macOS 26.11.0 build: same per-document
+        # counts, same 1,968 section pairs. Recorded separately because the
+        # version string is what the check keys on.
+        "chunks": {"it-act-2025": 1762, "it-rules-2026": 2670, "it-act-1961": 3852,
+                   "cgst-act-2017": 579, "cgst-rules-2017": 889, "faq-cbdt": FAQ_CHUNKS},
+    },
+    {
         "pdftotext": "26.11.0",
         "label": "poppler 26.11.0 (Homebrew, macOS arm64), 2026-11-22",
         # Measured after SECTION_RE accepted three-letter suffixes (44ADA, 80CCD):
@@ -88,11 +98,29 @@ def sha256_16(path: Path) -> str:
     return h.hexdigest()[:16]
 
 
+def pdftotext_bin() -> str:
+    """Binary to run: the `PDFTOTEXT` env var overrides PATH.
+
+    Git for Windows ships pdftotext 4.00 (2017) ahead of any modern poppler, so
+    on a Windows checkout the 9-year-old build wins silently and produces a
+    corpus that matches no pin set. Pin the binary by path instead of editing
+    PATH: `PDFTOTEXT=/path/to/pdftotext make corpus`.
+
+    A git-bash/MSYS path is translated, because `/c/Users/...` is what a shell
+    user naturally types and what a native binary cannot open.
+    """
+    value = os.environ.get("PDFTOTEXT")
+    if not value:
+        return "pdftotext"
+    m = re.match(r"^/([a-zA-Z])/(.*)$", value)
+    return f"{m.group(1).upper()}:/{m.group(2)}" if m else value
+
+
 def pdftotext_version() -> str | None:
-    """Version of the pdftotext on PATH (it prints to stderr), or None."""
+    """Version of the pdftotext in use (it prints to stderr), or None."""
     try:
         res = subprocess.run(
-            ["pdftotext", "-v"], capture_output=True, text=True, check=False
+            [pdftotext_bin(), "-v"], capture_output=True, text=True, check=False
         )
     except FileNotFoundError:
         return None
@@ -226,10 +254,16 @@ def main() -> int:
             f"python {v.major}.{v.minor} is too old - use 3.11+")
 
     # 2. poppler
-    pdftotext = shutil.which("pdftotext")
-    f.check(bool(pdftotext), f"pdftotext {pdftotext_version()} found at {pdftotext}",
-            "pdftotext missing - install poppler "
-            "(Windows: winget install oschwartz10612.Poppler | Debian: apt install poppler-utils)")
+    override = os.environ.get("PDFTOTEXT")
+    pdftotext = shutil.which(pdftotext_bin()) or (
+        pdftotext_bin() if Path(pdftotext_bin()).exists() else None)
+    if pdftotext:
+        f.check(True, f"pdftotext {pdftotext_version()} found at {pdftotext}", "")
+    elif override:
+        f.check(False, "", f"PDFTOTEXT={override} is set but is not an executable path")
+    else:
+        f.check(False, "", "pdftotext missing - install poppler "
+                "(Windows: winget install oschwartz10612.Poppler | Debian: apt install poppler-utils)")
 
     # 3. documents
     if not MANIFEST.exists():

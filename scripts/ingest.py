@@ -30,6 +30,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -93,9 +94,23 @@ class Chunk:
 # --------------------------------------------------------------------------- #
 
 
+def pdftotext_bin() -> str:
+    """Binary to run: the `PDFTOTEXT` env var overrides PATH.
+
+    Git for Windows ships pdftotext 4.00 (2017) ahead of any modern poppler, so
+    a Windows checkout would otherwise extract with a build that matches no pin
+    set - and the only symptom is a doctor failure much later.
+    """
+    value = os.environ.get("PDFTOTEXT")
+    if not value:
+        return "pdftotext"
+    m = re.match(r"^/([a-zA-Z])/(.*)$", value)
+    return f"{m.group(1).upper()}:/{m.group(2)}" if m else value
+
+
 def pdf_to_pages(path: Path, mode: str = "layout") -> list[str]:
     """Return one string per PDF page, extracted with pdftotext (-layout/-raw)."""
-    args = ["pdftotext"]
+    args = [pdftotext_bin()]
     if mode == "layout":
         args.append("-layout")
     elif mode == "raw":
@@ -120,7 +135,7 @@ def pdftotext_version() -> str | None:
     """
     try:
         res = subprocess.run(
-            ["pdftotext", "-v"], capture_output=True, text=True, check=False
+            [pdftotext_bin(), "-v"], capture_output=True, text=True, check=False
         )
     except FileNotFoundError:
         return None

@@ -2,7 +2,11 @@
 # Week 1 targets: corpus, schema, retrieval, eval, app shell.
 
 SHELL := /bin/bash
-PY := .venv/bin/python
+# Venv layout differs by platform: Scripts/ on Windows, bin/ elsewhere. Detect
+# it instead of assuming POSIX, or every target fails on a Windows checkout.
+VENV_BIN := $(if $(wildcard .venv/Scripts/python.exe),.venv/Scripts,.venv/bin)
+PY := $(VENV_BIN)/python
+PYTHON ?= $(shell command -v python3 2>/dev/null || command -v python)
 COMPOSE := docker compose -f infra/docker-compose.yml
 API_DIR := apps/api
 WEB_DIR := apps/web
@@ -15,7 +19,7 @@ help:  ## show this list
 
 # --- environment -----------------------------------------------------------
 .venv:  ## create the virtualenv and install python deps
-	python3 -m venv .venv
+	$(PYTHON) -m venv .venv
 	$(PY) -m pip install --upgrade pip
 	$(PY) -m pip install -r requirements-dev.txt
 	$(PY) -m pip install -e $(API_DIR)
@@ -62,10 +66,19 @@ psql:  ## open a psql shell
 	$(COMPOSE) exec db psql -U askdocs -d askdocs
 
 # --- services --------------------------------------------------------------
+# `tsc`, `next` and the Tailwind postcss plugin live in node_modules, which is
+# gitignored. A fresh clone therefore fails `make typecheck` with "This is not
+# the tsc command you are looking for" until the deps exist — so make them a
+# real target instead of a README step nobody reads.
+$(WEB_DIR)/node_modules: $(WEB_DIR)/package.json $(WEB_DIR)/package-lock.json
+	cd $(WEB_DIR) && npm ci --no-audit --no-fund
+
+web-deps: $(WEB_DIR)/node_modules  ## install web dependencies (once per checkout)
+
 api:  ## run the API on :8000 (reload)
 	cd $(API_DIR) && ../../$(PY) -m uvicorn askdocs_api.main:app --reload --port 8000
 
-web:  ## run the app shell on :3000
+web: $(WEB_DIR)/node_modules  ## run the app shell on :3000
 	cd $(WEB_DIR) && npm run dev
 
 # --- quality ---------------------------------------------------------------
@@ -80,7 +93,7 @@ fmt:  ## ruff format + fix
 	$(PY) -m ruff check --fix apps/api eval scripts
 	$(PY) -m ruff format apps/api eval scripts
 
-typecheck:  ## mypy (api) + tsc (web)
+typecheck: $(WEB_DIR)/node_modules  ## mypy (api) + tsc (web)
 	cd $(API_DIR) && ../../$(PY) -m mypy askdocs_api
 	cd $(WEB_DIR) && npx tsc --noEmit
 
@@ -99,5 +112,5 @@ eval-full:  ## every question with a section
 
 verify: doctor test eval-retrieval  ## the Week 1 gate in one command
 
-.PHONY: help doctor .venv env corpus ingest embed up down migrate load db psql api web \
+.PHONY: help doctor .venv env corpus ingest embed up down migrate load db psql api web web-deps \
         test lint fmt typecheck eval-retrieval eval-full eval-e2e eval-e2e-echo verify
