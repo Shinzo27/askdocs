@@ -249,3 +249,41 @@ Everything is stopped except Docker Desktop and the Postgres container:
    section when the budget allows) — the sub-clause problem behind q001/q002.
 3. **Then** Week 3's surfaces (corpus browser wired to `/corpus/stats`, history, eval
    dashboard), which do not depend on the model question at all.
+
+---
+
+## 8. Machine #2 (Windows 11, 2026-11-23) — the handoff test, and what it broke
+
+A second machine cloned the repo and ran the documented bootstrap. It did **not** reproduce
+out of the box. Four real portability bugs, all now fixed in code rather than in prose:
+
+| Problem | Symptom | Fix |
+|---|---|---|
+| Git for Windows ships **pdftotext 4.00** (2017) ahead of any modern poppler on PATH | corpus rebuilt as 11,093 chunks / 1,987 pairs, matching no pin set; `doctor` FAIL | `PDFTOTEXT` env override in `ingest.py` + `doctor.py`; pin set added for the modern build |
+| Ancient extractor silently wins | "chunk counts match the pins (9763 chunks)" style ambiguity → doctor now names the build it matched | doctor prints the pin label and warns when `stats.json`'s extractor differs from PATH |
+| `Makefile` assumed a POSIX venv (`PY := .venv/bin/python`) and `python3` | every target failed on Windows before running anything | `VENV_BIN` auto-detects `Scripts/` vs `bin/`; `PYTHON ?= python3 || python` |
+| `make test` needed a `.env` (config fails fast on missing `DATABASE_URL`) | 5 failures that say nothing about the code | `apps/api/tests/conftest.py` sets a dummy URL with `setdefault` |
+| `make typecheck` needed `node_modules`, which is gitignored | "This is not the tsc command you are looking for" | node_modules is a real make target; `typecheck` and `web` depend on it |
+
+**Result on machine #2 after the fixes:** modern poppler **26.09.0** reproduces the corpus
+**exactly** (11,069 chunks / 1,968 pairs — same as the macOS 26.11.0 pin, now recorded as its
+own pin set), `doctor` READY, `make test` **48 passing** (28 pytest + 20 unittest),
+`make lint` clean, `make typecheck` clean (5 genuine mypy errors found and fixed:
+`list` without parameters, `Any` from a numpy index, `None`-able section key, untyped
+factory, unannotated dict).
+
+Not yet run on machine #2: `make db` + `load` + `eval-retrieval`/`eval-e2e` (needs Docker
+Desktop up and the bge-small model download), i.e. the retrieval *numbers* are still only
+measured on the macOS box. Everything up to the corpus is now reproduced twice.
+
+### Pending: `AGENTS.md` is stale and protected
+
+`AGENTS.md` needs three edits that a write-approval timeout blocked. Apply them by hand or
+approve an agent edit:
+
+1. Line 6 → `**State:** Week 1 done (recall@10 0.89); Week 2 built, accuracy gate open (fact recall 0.27 vs 0.80). Corpus 11,069 chunks (9,752 indexed; eval-only FAQ excluded). Read docs/STATUS.md, then docs/PLAN.md.`
+2. Line 27 → `python scripts/ingest.py        # 11,069 chunks (count depends on poppler build)`
+3. Line 38 table → add `| macOS arm64 (2026-11-22) | 26.11.0 | 9,752 | 11,069 |` and `| Windows 11 (2026-11-23) | 26.09.0 | 9,752 | 11,069 |`, and change the Windows row's `11,080` to the FAQ-included column name that matches reality.
+
+Also worth adding to `AGENTS.md` (traps section): *git-bash ships pdftotext 4.00 and wins
+over a modern install — set `PDFTOTEXT` rather than editing PATH.*

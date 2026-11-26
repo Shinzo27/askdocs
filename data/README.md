@@ -42,7 +42,7 @@ python scripts/doctor.py         # interpreter, poppler, per-document hashes, pi
 
 `doctor.py` prints the `corpus_hash` — quote it in every eval report. Numbers from different corpora are not comparable.
 
-**Poppler builds differ.** The same hash-verified PDFs give slightly different text under different `pdftotext` builds, so chunk counts (and `corpus_hash`) are pinned **per build**: `ingest.py` records `pdftotext_version` in `stats.json`, and `doctor.py` checks it against that build's entry in `PIN_SETS`. Pinned today: the author's Windows build (version not recorded; 11,080 chunks) and poppler 24.02.0 on Ubuntu 24.04 (11,091 with the FAQ, 9,774 without). The headline counts in this file are from the Windows build. A build with no pin set fails `doctor.py` until its output has been spot-checked and a set added.
+**Poppler builds differ.** The same hash-verified PDFs give slightly different text under different `pdftotext` builds, so chunk counts (and `corpus_hash`) are pinned **per build**: `ingest.py` records `pdftotext_version` in `stats.json`, and `doctor.py` checks it against that build's entry in `PIN_SETS`. Pinned today: the author's Windows build (version not recorded; 11,080 chunks), poppler 24.02.0 on Ubuntu 24.04 (11,091 with the FAQ, 9,774 without), and poppler 26.11.0 (macOS) / 26.09.0 (Windows 11) which both produce **11,069** — recorded as two pin sets because the check keys on the version string. The headline counts in this file are from the Windows build. A build with no pin set fails `doctor.py` until its output has been spot-checked and a set added.
 
 ## Adding a document
 
